@@ -20,8 +20,34 @@ const AdminResponseForm = () => {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
+  const [fullSizeImage, setFullSizeImage] = useState(null)
 
   const { response, internalComment } = formData
+
+  // Helper function to get the correct image URL
+  const getAttachmentUrl = (attachment) => {
+    if (!attachment) return null
+
+    // If it's already a full URL, return it
+    if (attachment.startsWith("http")) {
+      return attachment
+    }
+
+    // Otherwise, construct the URL
+    return `${API_URL}/${attachment}`
+  }
+
+  // Helper function to determine if an attachment is an image
+  const isImageAttachment = (attachment) => {
+    if (!attachment) return false
+    const lowerCaseAttachment = attachment.toLowerCase()
+    return (
+      lowerCaseAttachment.endsWith(".jpg") ||
+      lowerCaseAttachment.endsWith(".jpeg") ||
+      lowerCaseAttachment.endsWith(".png") ||
+      lowerCaseAttachment.endsWith(".gif")
+    )
+  }
 
   // Redirect if not logged in or not an admin
   useEffect(() => {
@@ -40,6 +66,7 @@ const AdminResponseForm = () => {
   useEffect(() => {
     const fetchComplaint = async () => {
       try {
+        setLoading(true)
         const token = localStorage.getItem("token")
 
         const response = await fetch(`${API_URL}/api/complaints/${id}`, {
@@ -126,6 +153,16 @@ const AdminResponseForm = () => {
     }
   }
 
+  // Function to open the image modal
+  const openImageModal = (imageUrl) => {
+    setFullSizeImage(imageUrl)
+  }
+
+  // Function to close the image modal
+  const closeImageModal = () => {
+    setFullSizeImage(null)
+  }
+
   if (!user || user.role === USER_ROLES.CITIZEN) {
     return null
   }
@@ -167,6 +204,23 @@ const AdminResponseForm = () => {
 
   return (
     <div className="admin-response-container">
+      {/* Image Modal */}
+      {fullSizeImage && (
+        <div className="image-modal" onClick={closeImageModal}>
+          <div className="image-modal-content">
+            <span className="close-modal" onClick={closeImageModal}>
+              &times;
+            </span>
+            <img
+              src={fullSizeImage || "/placeholder.svg"}
+              alt="Full size attachment"
+              className="modal-image"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="complaint-details">
         <h2 className="complaint-title">{complaint.title}</h2>
 
@@ -197,17 +251,43 @@ const AdminResponseForm = () => {
         {complaint.attachments && complaint.attachments.length > 0 && (
           <div className="complaint-attachments">
             <h3>Attachments</h3>
-            <div className="attachments-list">
+            <div className="attachments-container">
               {complaint.attachments.map((attachment, index) => (
-                <a
-                  key={index}
-                  href={`${API_URL}/${attachment}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="attachment-link"
-                >
-                  Attachment {index + 1}
-                </a>
+                <div key={index} className="attachment-item">
+                  {isImageAttachment(attachment) ? (
+                    <div className="attachment-image-container">
+                      <img
+                        src={getAttachmentUrl(attachment) || "/placeholder.svg"}
+                        alt={`Attachment ${index + 1}`}
+                        className="attachment-image"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = "/placeholder.svg?height=200&width=300"
+                          e.target.alt = "Image failed to load"
+                        }}
+                      />
+                      <a
+                        href="#"
+                        className="attachment-link"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          openImageModal(getAttachmentUrl(attachment))
+                        }}
+                      >
+                        View Full Size
+                      </a>
+                    </div>
+                  ) : (
+                    <a
+                      href={`${API_URL}/${attachment}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="attachment-link"
+                    >
+                      Attachment {index + 1}
+                    </a>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -295,4 +375,3 @@ const AdminResponseForm = () => {
 }
 
 export default AdminResponseForm
-

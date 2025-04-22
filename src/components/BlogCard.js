@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { API_URL } from "../config"
 import "./BlogCard.css"
 
 const BlogCard = ({ post }) => {
@@ -25,6 +26,31 @@ const BlogCard = ({ post }) => {
     return content.substr(0, maxLength) + "..."
   }
 
+  // Function to get the full image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "/placeholder.svg"
+
+    // If the path already starts with http or https, it's an absolute URL
+    if (imagePath.startsWith("http")) {
+      return imagePath
+    }
+
+    // If the path starts with a slash, it's relative to the domain
+    if (imagePath.startsWith("/")) {
+      return `${API_URL}${imagePath}`
+    }
+
+    // Otherwise, assume it's a relative path and prepend the API URL and /uploads/
+    return `${API_URL}/uploads/${imagePath}`
+  }
+
+  // Determine if the featured media is a video
+  const isVideo = (path) => {
+    if (!path) return false
+    const videoExtensions = [".mp4", ".webm", ".ogg"]
+    return videoExtensions.some((ext) => path.toLowerCase().endsWith(ext))
+  }
+
   return (
     <div className="blog-card">
       <div className="blog-card-header">
@@ -34,7 +60,30 @@ const BlogCard = ({ post }) => {
 
       {post.featuredImage && (
         <div className="blog-image-container">
-          <img src={post.featuredImage || "/placeholder.svg"} alt={post.title} className="blog-featured-image" />
+          {isVideo(post.featuredImage) ? (
+            <video
+              src={getImageUrl(post.featuredImage)}
+              className="blog-featured-video"
+              controls
+              preload="metadata"
+              onError={(e) => {
+                console.error("Video failed to load:", post.featuredImage, e)
+                e.target.onerror = null
+                e.target.poster = "/placeholder.svg"
+              }}
+            />
+          ) : (
+            <img
+              src={getImageUrl(post.featuredImage) || "/placeholder.svg"}
+              alt={post.title}
+              className="blog-featured-image"
+              onError={(e) => {
+                console.error("Image failed to load:", post.featuredImage)
+                e.target.onerror = null
+                e.target.src = "/placeholder.svg"
+              }}
+            />
+          )}
         </div>
       )}
 

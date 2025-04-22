@@ -1,0 +1,314 @@
+.citizen-complaints-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .citizen-complaints-container h1 {
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .complaint-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+  }
+  
+  .complaint-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    overflow-x: auto;
+  }
+  
+  .complaint-tabs button {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    position: relative;
+  }
+  
+  .complaint-tabs button.active {
+    color: #007bff;
+    font-weight: bold;
+  }
+  
+  .complaint-tabs button.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #007bff;
+  }
+  
+  .complaints-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+  }
+  
+  .complaint-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .complaint-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .complaint-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .complaint-title {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+  }
+  
+  .badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .badge-pending {
+    background-color: #ffc107;
+    color: #000;
+  }
+  
+  .badge-in-progress {
+    background-color: #17a2b8;
+    color: #fff;
+  }
+  
+  .badge-resolved {
+    background-color: #28a745;
+    color: #fff;
+  }
+  
+  .badge-escalated {
+    background-color: #dc3545;
+    color: #fff;
+  }
+  
+  .complaint-body {
+    padding: 15px;
+  }
+  
+  .complaint-description {
+    margin-bottom: 15px;
+    color: #555;
+  }
+  
+  .complaint-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .complaint-due-date {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #777;
+    padding: 5px;
+    border-radius: 4px;
+  }
+  
+  .complaint-due-date.overdue {
+    background-color: #ffeeee;
+    color: #d9534f;
+  }
+  
+  .overdue-label {
+    color: #d9534f;
+    font-weight: bold;
+  }
+  
+  .complaint-response {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  
+  .response-action-needed {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 14px;
+    border-left: 4px solid #ffc107;
+    font-weight: bold;
+  }
+  
+  .complaint-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0069d9;
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+  
+  .btn-escalate {
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  .btn-escalate:hover {
+    background-color: #c82333;
+  }
+  
+  .btn-resolve {
+    background-color: #28a745;
+    color: #fff;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  .btn-resolve:hover {
+    background-color: #218838;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+  }
+  
+  .error-message {
+    text-align: center;
+    padding: 20px;
+    color: #dc3545;
+  }
+  
+  .no-complaints {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+  }
+  
+  .alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    position: relative;
+  }
+  
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: inherit;
+  }
+  
+  .complaint-actions-container {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .action-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #495057;
+  }
+  
+  @media (max-width: 768px) {
+    .complaints-list {
+      grid-template-columns: 1fr;
+    }
+  
+    .complaint-meta {
+      flex-direction: column;
+      gap: 5px;
+    }
+  
+    .complaint-footer {
+      flex-direction: column;
+      gap: 10px;
+    }
+  
+    .btn {
+      width: 100%;
+    }
+  
+    .complaint-actions-container {
+      width: 100%;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+  
+  

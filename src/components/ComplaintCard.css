@@ -1,0 +1,21 @@
+.response-indicator {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.response-count {
+  font-weight: 600;
+  color: #495057;
+}
+
+.citizen-action-needed {
+  color: #856404;
+  font-style: italic;
+}
+

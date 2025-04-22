@@ -21,6 +21,10 @@ import PrivateRoute from "./components/PrivateRoute"
 import ForgotPassword from "./routes/ForgotPassword"
 import AdminApproval from "./routes/AdminApproval"
 import AdminStatistics from "./routes/AdminStatistics"
+import BlogList from "./routes/BlogList"
+import BlogDetail from "./routes/BlogDetail"
+import BlogCreate from "./routes/BlogCreate"
+import BlogEdit from "./routes/BlogEdit"
 import "./App.css"
 
 function App() {
@@ -118,6 +122,27 @@ function App() {
               <Route path="/documents" element={<DocumentGuidance />} />
               <Route path="/alerts" element={<SafetyAlerts />} />
               <Route path="/offices" element={<OfficeAvailability />} />
+
+              {/* Blog Routes */}
+              <Route path="/blog" element={<BlogList />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route
+                path="/blog/create"
+                element={
+                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
+                    <BlogCreate />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/blog/edit/:id"
+                element={
+                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
+                    <BlogEdit />
+                  </PrivateRoute>
+                }
+              />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
@@ -129,4 +154,3 @@ function App() {
 }
 
 export default App
-

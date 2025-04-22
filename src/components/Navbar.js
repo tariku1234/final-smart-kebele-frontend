@@ -27,6 +27,11 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="navbar-item">
+            <Link to="/blog" className="navbar-link">
+              Blog
+            </Link>
+          </li>
+          <li className="navbar-item">
             <Link to="/documents" className="navbar-link">
               Documents
             </Link>
@@ -129,4 +134,3 @@ const Navbar = () => {
 }
 
 export default Navbar
-

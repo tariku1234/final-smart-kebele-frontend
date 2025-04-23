@@ -291,6 +291,15 @@
   color: #555;
 }
 
+/* Fix for the resolve and submit second stage button */
+.btn-resolve-submit {
+  font-size: 14px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  width: auto;
+  display: inline-block;
+}
+
 @media (max-width: 768px) {
   .complaints-list {
     grid-template-columns: 1fr;

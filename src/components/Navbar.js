@@ -37,11 +37,6 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="navbar-item">
-            <Link to="/alerts" className="navbar-link">
-              Safety Alerts
-            </Link>
-          </li>
-          <li className="navbar-item">
             <Link to="/offices" className="navbar-link">
               Office Availability
             </Link>

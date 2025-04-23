@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
-import AlertCard from "../components/AlertCard"
 import OfficeCard from "../components/OfficeCard"
 import { API_URL } from "../config"
 import "./Home.css"
@@ -10,7 +9,6 @@ import { AuthContext } from "../context/AuthContext"
 
 const Home = () => {
   const { user } = useContext(AuthContext)
-  const [alerts, setAlerts] = useState([])
   const [offices, setOffices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -18,21 +16,19 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch alerts
-        const alertsResponse = await fetch(`${API_URL}/api/alerts?limit=3`)
-        const alertsData = await alertsResponse.json()
-
         // Fetch offices
         const officesResponse = await fetch(`${API_URL}/api/offices?limit=3`)
         const officesData = await officesResponse.json()
 
-        setAlerts(alertsData.alerts)
-        setOffices(officesData.offices)
+        // Make sure we're setting arrays, even if the API returns unexpected data
+        setOffices(Array.isArray(officesData.offices) ? officesData.offices : [])
         setLoading(false)
       } catch (err) {
         console.error("Error fetching home data:", err)
         setError("Failed to load data. Please try again later.")
         setLoading(false)
+        // Ensure we have empty arrays if there's an error
+        setOffices([])
       }
     }
 
@@ -72,17 +68,17 @@ const Home = () => {
             </p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">���</div>
+            <div className="feature-icon">📄</div>
             <h3 className="feature-title">Document Guidance</h3>
             <p className="feature-description">
               Access clear information about required documents and procedures for services.
             </p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">🔔</div>
-            <h3 className="feature-title">Safety Alerts</h3>
+            <div className="feature-icon">📰</div>
+            <h3 className="feature-title">Blog Posts</h3>
             <p className="feature-description">
-              Stay informed about public safety threats and important announcements.
+              Stay informed about important news, updates, and announcements from local government.
             </p>
           </div>
           <div className="feature-card">
@@ -93,28 +89,6 @@ const Home = () => {
             </p>
           </div>
         </div>
-      </section>
-
-      <section className="alerts-section">
-        <div className="section-header">
-          <h2 className="section-title">Safety Alerts</h2>
-          <Link to="/alerts" className="view-all-link">
-            View All
-          </Link>
-        </div>
-        {loading ? (
-          <p>Loading alerts...</p>
-        ) : error ? (
-          <p className="error-message">{error}</p>
-        ) : alerts.length === 0 ? (
-          <p>No alerts at this time.</p>
-        ) : (
-          <div className="alerts-grid">
-            {alerts.map((alert) => (
-              <AlertCard key={alert._id} alert={alert} />
-            ))}
-          </div>
-        )}
       </section>
 
       <section className="offices-section">
@@ -128,13 +102,11 @@ const Home = () => {
           <p>Loading office information...</p>
         ) : error ? (
           <p className="error-message">{error}</p>
-        ) : offices.length === 0 ? (
+        ) : offices && offices.length === 0 ? (
           <p>No office information available.</p>
         ) : (
           <div className="offices-grid">
-            {offices.map((office) => (
-              <OfficeCard key={office._id} office={office} />
-            ))}
+            {offices && offices.map((office) => <OfficeCard key={office._id} office={office} />)}
           </div>
         )}
       </section>

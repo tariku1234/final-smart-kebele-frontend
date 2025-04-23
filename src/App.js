@@ -14,7 +14,6 @@ import ComplaintDetail from "./routes/ComplaintDetail"
 import AdminDashboard from "./routes/AdminDashboard"
 import AdminResponseForm from "./routes/AdminResponseForm"
 import DocumentGuidance from "./routes/DocumentGuidance"
-import SafetyAlerts from "./routes/SafetyAlerts"
 import OfficeAvailability from "./routes/OfficeAvailability"
 import NotFound from "./routes/NotFound"
 import PrivateRoute from "./components/PrivateRoute"
@@ -120,7 +119,6 @@ function App() {
                 }
               />
               <Route path="/documents" element={<DocumentGuidance />} />
-              <Route path="/alerts" element={<SafetyAlerts />} />
               <Route path="/offices" element={<OfficeAvailability />} />
 
               {/* Blog Routes */}

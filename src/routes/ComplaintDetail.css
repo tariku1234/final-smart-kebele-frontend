@@ -41,3 +41,19 @@
 .close-modal:hover {
   color: #ccc;
 }
+
+.view-full-size-link {
+  background: none;
+  border: none;
+  color: #3498db;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  margin-top: 5px;
+  display: block;
+}
+
+.view-full-size-link:hover {
+  color: #2980b9;
+}

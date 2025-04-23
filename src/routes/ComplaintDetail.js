@@ -581,16 +581,13 @@ const ComplaintDetail = () => {
                           e.target.alt = "Image failed to load"
                         }}
                       />
-                      <a
-                        href="#"
-                        className="attachment-link"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          openImageModal(getAttachmentUrl(attachment))
-                        }}
+                      <button
+                        type="button"
+                        className="view-full-size-btn"
+                        onClick={() => openImageModal(getAttachmentUrl(attachment))}
                       >
                         View Full Size
-                      </a>
+                      </button>
                     </div>
                   ) : (
                     <a

@@ -314,6 +314,27 @@ const CitizenComplaints = () => {
     }
   }
 
+  const getAssignedTo = (complaint) => {
+    if (!complaint.assignedTo) return "Not assigned"
+
+    let assignedInfo = ""
+    if (complaint.assignedTo.office) {
+      assignedInfo += `${complaint.assignedTo.office}`
+    }
+
+    if (complaint.assignedTo.department) {
+      assignedInfo += assignedInfo ? ` - ${complaint.assignedTo.department}` : complaint.assignedTo.department
+    }
+
+    if (complaint.assignedTo.wereda) {
+      assignedInfo += assignedInfo
+        ? ` (Wereda: ${complaint.assignedTo.wereda})`
+        : `Wereda: ${complaint.assignedTo.wereda}`
+    }
+
+    return assignedInfo || "Not specified"
+  }
+
   return (
     <div className="citizen-complaints-container">
       <h1>My Complaints</h1>
@@ -405,6 +426,7 @@ const CitizenComplaints = () => {
                 <div className="complaint-meta">
                   <span className="complaint-date">Submitted: {formatDate(complaint.submittedAt)}</span>
                   <span className="complaint-stage">Current Stage: {getStageLabel(complaint.currentStage)}</span>
+                  <span className="complaint-assigned">Assigned To: {getAssignedTo(complaint)}</span>
                 </div>
 
                 {getDueDate(complaint) && (

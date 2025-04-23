@@ -1,13 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { Link } from "react-router-dom"
 import AlertCard from "../components/AlertCard"
 import OfficeCard from "../components/OfficeCard"
 import { API_URL } from "../config"
 import "./Home.css"
+import { AuthContext } from "../context/AuthContext"
 
 const Home = () => {
+  const { user } = useContext(AuthContext)
   const [alerts, setAlerts] = useState([])
   const [offices, setOffices] = useState([])
   const [loading, setLoading] = useState(true)
@@ -47,9 +49,11 @@ const Home = () => {
             complaint handling.
           </p>
           <div className="hero-buttons">
-            <Link to="/complaint" className="btn btn-primary">
-              Report a Complaint
-            </Link>
+            {(!user || user.role === "citizen") && (
+              <Link to="/complaint" className="btn btn-primary">
+                Report a Complaint
+              </Link>
+            )}
             <Link to="/documents" className="btn btn-secondary">
               View Documents
             </Link>
@@ -68,7 +72,7 @@ const Home = () => {
             </p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">📄</div>
+            <div className="feature-icon">���</div>
             <h3 className="feature-title">Document Guidance</h3>
             <p className="feature-description">
               Access clear information about required documents and procedures for services.
@@ -141,9 +145,11 @@ const Home = () => {
           <p className="cta-description">
             Help us improve government services by reporting corruption and service-related issues.
           </p>
-          <Link to="/complaint" className="btn btn-primary">
-            Report Now
-          </Link>
+          {(!user || user.role === "citizen") && (
+            <Link to="/complaint" className="btn btn-primary">
+              Report Now
+            </Link>
+          )}
         </div>
       </section>
     </div>
@@ -151,4 +157,3 @@ const Home = () => {
 }
 
 export default Home
-

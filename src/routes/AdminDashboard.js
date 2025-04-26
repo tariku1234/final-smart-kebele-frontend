@@ -8,7 +8,7 @@ import { API_URL, USER_ROLES } from "../config"
 import "./AdminDashboard.css"
 
 const AdminDashboard = () => {
-  const { user } = useContext(AuthContext)
+  const { user, loading: authLoading, userDataReady } = useContext(AuthContext)
   const navigate = useNavigate()
 
   const [complaints, setComplaints] = useState([])
@@ -25,23 +25,25 @@ const AdminDashboard = () => {
 
   // Redirect if not logged in or not an admin
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && user === null) {
       navigate("/login")
       return
     }
 
-    if (user.role === USER_ROLES.CITIZEN) {
+    if (!authLoading && user && user.role === USER_ROLES.CITIZEN) {
       navigate("/")
       return
     }
-  }, [user, navigate])
+  }, [user, authLoading, navigate])
 
   // Fetch complaints based on admin role
   useEffect(() => {
     const fetchComplaints = async () => {
-      if (!user) return
+      // Only fetch complaints if user data is fully loaded
+      if (!userDataReady || !user) return
 
       try {
+        setLoading(true)
         const token = localStorage.getItem("token")
         let url = `${API_URL}/api/complaints`
 
@@ -51,6 +53,11 @@ const AdminDashboard = () => {
         }
 
         console.log("Fetching complaints from:", url)
+        console.log("Current user role:", user.role)
+        console.log("User location data:", {
+          kifleketema: user.kifleketema,
+          wereda: user.wereda,
+        })
 
         const response = await fetch(url, {
           headers: {
@@ -67,19 +74,31 @@ const AdminDashboard = () => {
         const data = await response.json()
         console.log("Complaints data:", data)
 
-        setComplaints(data.complaints || [])
+        // Filter complaints based on user's role and location
+        let filteredComplaints = data.complaints || []
+
+        // Additional client-side filtering for wereda administrators
+        if (user.role === USER_ROLES.WEREDA_ANTI_CORRUPTION && user.kifleketema && user.wereda) {
+          filteredComplaints = filteredComplaints.filter(
+            (complaint) =>
+              complaint.kifleketema === user.kifleketema && Number(complaint.wereda) === Number(user.wereda),
+          )
+          console.log("Filtered complaints for wereda admin:", filteredComplaints.length)
+        }
+
+        setComplaints(filteredComplaints)
 
         // Calculate stats from the complaints
         const complaintStats = {
-          total: data.complaints ? data.complaints.length : 0,
+          total: filteredComplaints.length,
           pending: 0,
           inProgress: 0,
           resolved: 0,
           escalated: 0,
         }
 
-        if (data.complaints && data.complaints.length > 0) {
-          data.complaints.forEach((complaint) => {
+        if (filteredComplaints.length > 0) {
+          filteredComplaints.forEach((complaint) => {
             switch (complaint.status) {
               case "pending":
                 complaintStats.pending++
@@ -108,10 +127,8 @@ const AdminDashboard = () => {
       }
     }
 
-    if (user && user.role !== USER_ROLES.CITIZEN) {
-      fetchComplaints()
-    }
-  }, [user, filter])
+    fetchComplaints()
+  }, [user, userDataReady, filter])
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value)
@@ -133,6 +150,15 @@ const AdminDashboard = () => {
     }
   }
 
+  // Show loading state while auth is loading or user data is not ready
+  if (authLoading || !userDataReady) {
+    return (
+      <div className="admin-dashboard">
+        <p className="loading-text">Loading user data...</p>
+      </div>
+    )
+  }
+
   if (!user || user.role === USER_ROLES.CITIZEN) {
     return null
   }
@@ -140,6 +166,31 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard">
       <h2 className="dashboard-title">{getRoleName(user.role)} Dashboard</h2>
+
+      {user.role === USER_ROLES.WEREDA_ANTI_CORRUPTION && (
+        <div className="admin-location-info">
+          <p>
+            <strong>Your assigned location:</strong>{" "}
+            {user.kifleketema
+              ? user.kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+              : "Not assigned"}
+            {user.wereda ? ` - Wereda ${user.wereda}` : ""}
+          </p>
+          <p className="location-note">You will only see complaints from your assigned location.</p>
+        </div>
+      )}
+
+      {user.role === USER_ROLES.KIFLEKETEMA_ANTI_CORRUPTION && (
+        <div className="admin-location-info">
+          <p>
+            <strong>Your assigned location:</strong>{" "}
+            {user.kifleketema
+              ? user.kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+              : "Not assigned"}
+          </p>
+          <p className="location-note">You will only see complaints from your assigned location.</p>
+        </div>
+      )}
 
       <div className="stats-container">
         <div className="stat-card">
@@ -190,6 +241,22 @@ const AdminDashboard = () => {
           ))}
         </div>
       )}
+
+      <style jsx>{`
+      .admin-location-info {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid #4e73df;
+      }
+      
+      .location-note {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-top: 5px;
+      }
+    `}</style>
     </div>
   )
 }

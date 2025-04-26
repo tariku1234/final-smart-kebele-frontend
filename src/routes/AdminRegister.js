@@ -90,6 +90,9 @@ const AdminRegister = () => {
     setLoading(true)
 
     try {
+      // Convert wereda to number if it exists
+      const weredaValue = wereda ? Number(wereda) : undefined
+
       const response = await fetch(`${API_URL}/api/admin/register-admin`, {
         method: "POST",
         headers: {
@@ -106,7 +109,7 @@ const AdminRegister = () => {
           role,
           adminCode,
           kifleketema,
-          wereda: role === "wereda_anti_corruption" ? wereda : undefined,
+          wereda: weredaValue,
         }),
       })
 

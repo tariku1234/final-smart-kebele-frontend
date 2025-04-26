@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [userDataReady, setUserDataReady] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in
@@ -25,12 +26,23 @@ export const AuthProvider = ({ children }) => {
 
           if (response.ok) {
             const data = await response.json()
+            console.log("User data loaded:", {
+              id: data.user._id,
+              role: data.user.role,
+              kifleketema: data.user.kifleketema,
+              wereda: data.user.wereda,
+            })
             setUser(data.user)
+            // Set a flag indicating user data is fully loaded
+            setUserDataReady(true)
           } else {
             // Token is invalid or expired
             localStorage.removeItem("token")
             setUser(null)
+            setUserDataReady(true)
           }
+        } else {
+          setUserDataReady(true)
         }
 
         setLoading(false)
@@ -38,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         console.error("Error checking authentication:", err)
         setError("Failed to authenticate user")
         setLoading(false)
+        setUserDataReady(true)
       }
     }
 
@@ -48,6 +61,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null)
+      setLoading(true)
+      setUserDataReady(false)
 
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -61,15 +76,41 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token)
-        setUser(data.user)
+
+        // After login, fetch the complete user profile
+        const profileResponse = await fetch(`${API_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${data.token}`,
+          },
+        })
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json()
+          console.log("Complete user profile loaded after login:", {
+            id: profileData.user._id,
+            role: profileData.user.role,
+            kifleketema: profileData.user.kifleketema,
+            wereda: profileData.user.wereda,
+          })
+          setUser(profileData.user)
+        } else {
+          setUser(data.user)
+        }
+
+        setUserDataReady(true)
+        setLoading(false)
         return true
       } else {
         setError(data.message || "Login failed")
+        setLoading(false)
+        setUserDataReady(true)
         return false
       }
     } catch (err) {
       console.error("Login error:", err)
       setError("Failed to connect to the server")
+      setLoading(false)
+      setUserDataReady(true)
       return false
     }
   }
@@ -106,6 +147,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token")
     setUser(null)
+    setUserDataReady(true)
   }
 
   return (
@@ -114,6 +156,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         error,
+        userDataReady,
         login,
         register,
         logout,
@@ -124,4 +167,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   )
 }
-//new

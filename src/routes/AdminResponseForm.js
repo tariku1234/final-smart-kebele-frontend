@@ -267,7 +267,7 @@ const AdminResponseForm = () => {
                         }}
                       />
                       <a
-                        href="#"
+                        href="1"
                         className="attachment-link"
                         onClick={(e) => {
                           e.preventDefault()

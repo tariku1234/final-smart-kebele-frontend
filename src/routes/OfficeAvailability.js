@@ -1,25 +1,81 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
+import { AuthContext } from "../context/AuthContext"
 import OfficeCard from "../components/OfficeCard"
-import { API_URL, OFFICE_STATUS } from "../config"
+import { API_URL, OFFICE_STATUS, KIFLEKETEMA_LIST, USER_ROLES, WEREDA_COUNT } from "../config"
 import "./OfficeAvailability.css"
 
 const OfficeAvailability = () => {
+  const { user } = useContext(AuthContext)
   const [offices, setOffices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedKifleketema, setSelectedKifleketema] = useState("")
+  const [selectedWereda, setSelectedWereda] = useState("")
+  const [weredaOptions, setWeredaOptions] = useState([])
+  const [officeTypes, setOfficeTypes] = useState([])
+  const [selectedOfficeType, setSelectedOfficeType] = useState("")
 
+  // Fetch office types
+  useEffect(() => {
+    const getOfficeTypes = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/offices/types`)
+        const data = await response.json()
+        setOfficeTypes(data.officeTypes || [])
+      } catch (err) {
+        console.error("Error fetching office types:", err)
+        setOfficeTypes([])
+      }
+    }
+
+    getOfficeTypes()
+  }, [])
+
+  // Update wereda options when kifleketema changes
+  useEffect(() => {
+    if (selectedKifleketema) {
+      const weredaCount = WEREDA_COUNT[selectedKifleketema] || 10
+      const options = Array.from({ length: weredaCount }, (_, i) => ({
+        value: i + 1,
+        label: `Wereda ${i + 1}`,
+      }))
+      setWeredaOptions(options)
+    } else {
+      setWeredaOptions([])
+    }
+    setSelectedWereda("")
+  }, [selectedKifleketema])
+
+  // Fetch offices based on filters
   useEffect(() => {
     const fetchOffices = async () => {
       try {
-        let url = `${API_URL}/api/offices`
+        setLoading(true)
+        let url = `${API_URL}/api/offices?`
+
+        const params = new URLSearchParams()
 
         if (filter !== "all") {
-          url += `?status=${filter}`
+          params.append("status", filter)
         }
+
+        if (selectedKifleketema) {
+          params.append("kifleketema", selectedKifleketema)
+        }
+
+        if (selectedWereda) {
+          params.append("wereda", selectedWereda)
+        }
+
+        if (selectedOfficeType) {
+          params.append("officeType", selectedOfficeType)
+        }
+
+        url += params.toString()
 
         const response = await fetch(url)
         const data = await response.json()
@@ -38,15 +94,26 @@ const OfficeAvailability = () => {
     }
 
     fetchOffices()
-  }, [filter])
+  }, [filter, selectedKifleketema, selectedWereda, selectedOfficeType])
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value)
-    setLoading(true)
   }
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value)
+  }
+
+  const handleKifleketemaChange = (e) => {
+    setSelectedKifleketema(e.target.value)
+  }
+
+  const handleWeredaChange = (e) => {
+    setSelectedWereda(e.target.value)
+  }
+
+  const handleOfficeTypeChange = (e) => {
+    setSelectedOfficeType(e.target.value)
   }
 
   // Filter offices based on search term
@@ -61,6 +128,66 @@ const OfficeAvailability = () => {
     <div className="office-availability-container">
       <h2 className="page-title">Office Availability</h2>
       <p className="page-description">Check the availability status of local government offices before visiting.</p>
+
+      <div className="location-filter-section">
+        <div className="location-filter">
+          <label htmlFor="kifleketema-filter" className="filter-label">
+            Kifle Ketema:
+          </label>
+          <select
+            id="kifleketema-filter"
+            value={selectedKifleketema}
+            onChange={handleKifleketemaChange}
+            className="filter-select"
+          >
+            <option value="">All Kifle Ketemas</option>
+            {KIFLEKETEMA_LIST.map((kifleketema) => (
+              <option key={kifleketema.value} value={kifleketema.value}>
+                {kifleketema.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="location-filter">
+          <label htmlFor="wereda-filter" className="filter-label">
+            Wereda:
+          </label>
+          <select
+            id="wereda-filter"
+            value={selectedWereda}
+            onChange={handleWeredaChange}
+            className="filter-select"
+            disabled={!selectedKifleketema}
+          >
+            <option value="">All Weredas</option>
+            {weredaOptions.map((wereda) => (
+              <option key={wereda.value} value={wereda.value}>
+                {wereda.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="location-filter">
+          <label htmlFor="office-type-filter" className="filter-label">
+            Office Type:
+          </label>
+          <select
+            id="office-type-filter"
+            value={selectedOfficeType}
+            onChange={handleOfficeTypeChange}
+            className="filter-select"
+          >
+            <option value="">All Office Types</option>
+            {officeTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div className="filter-section">
         <div className="search-container">
@@ -99,9 +226,16 @@ const OfficeAvailability = () => {
           ))}
         </div>
       )}
+
+      {user && user.role === USER_ROLES.WEREDA_ANTI_CORRUPTION && (
+        <div className="admin-actions">
+          <button className="add-office-btn" onClick={() => (window.location.href = "/admin/offices")}>
+            Manage Office Availability
+          </button>
+        </div>
+      )}
     </div>
   )
 }
 
 export default OfficeAvailability
-

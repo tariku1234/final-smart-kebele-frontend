@@ -5,25 +5,26 @@ import Footer from "./components/Footer"
 import Home from "./routes/Home"
 import Login from "./routes/Login"
 import Register from "./routes/Register"
-import AdminRegister from "./routes/AdminRegister"
-import StakeholderRegister from "./routes/StakeholderRegister"
-import StakeholderApproval from "./routes/StakeholderApproval"
+import ForgotPassword from "./routes/ForgotPassword"
+import DocumentGuidance from "./routes/DocumentGuidance"
+import NotFound from "./routes/NotFound"
+import PrivateRoute from "./components/PrivateRoute"
 import ComplaintForm from "./routes/ComplaintForm"
 import CitizenComplaints from "./routes/CitizenComplaints"
 import ComplaintDetail from "./routes/ComplaintDetail"
 import AdminDashboard from "./routes/AdminDashboard"
 import AdminResponseForm from "./routes/AdminResponseForm"
-import DocumentGuidance from "./routes/DocumentGuidance"
-import OfficeAvailability from "./routes/OfficeAvailability"
-import NotFound from "./routes/NotFound"
-import PrivateRoute from "./components/PrivateRoute"
-import ForgotPassword from "./routes/ForgotPassword"
+import StakeholderRegister from "./routes/StakeholderRegister"
+import AdminRegister from "./routes/AdminRegister"
+import StakeholderApproval from "./routes/StakeholderApproval"
 import AdminApproval from "./routes/AdminApproval"
 import AdminStatistics from "./routes/AdminStatistics"
 import BlogList from "./routes/BlogList"
 import BlogDetail from "./routes/BlogDetail"
 import BlogCreate from "./routes/BlogCreate"
 import BlogEdit from "./routes/BlogEdit"
+import OfficeAvailability from "./routes/OfficeAvailability"
+import AdminOffices from "./routes/AdminOffices"
 import "./App.css"
 
 function App() {
@@ -37,16 +38,15 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/admin-register" element={<AdminRegister />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/documents" element={<DocumentGuidance />} />
               <Route path="/stakeholder-register" element={<StakeholderRegister />} />
-              <Route
-                path="/admin/stakeholders"
-                element={
-                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
-                    <StakeholderApproval />
-                  </PrivateRoute>
-                }
-              />
+              <Route path="/admin-register" element={<AdminRegister />} />
+              <Route path="/blog" element={<BlogList />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/offices" element={<OfficeAvailability />} />
+
+              {/* Protected Routes */}
               <Route
                 path="/complaint"
                 element={
@@ -64,9 +64,17 @@ function App() {
                 }
               />
               <Route
-                path="/complaint-detail/:id"
+                path="/complaint/:id"
                 element={
-                  <PrivateRoute>
+                  <PrivateRoute
+                    allowedRoles={[
+                      "citizen",
+                      "stakeholder_office",
+                      "wereda_anti_corruption",
+                      "kifleketema_anti_corruption",
+                      "kentiba_biro",
+                    ]}
+                  >
                     <ComplaintDetail />
                   </PrivateRoute>
                 }
@@ -101,7 +109,14 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route
+                path="/admin/stakeholders"
+                element={
+                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
+                    <StakeholderApproval />
+                  </PrivateRoute>
+                }
+              />
               <Route
                 path="/admin/approve-admins"
                 element={
@@ -118,29 +133,36 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              <Route path="/documents" element={<DocumentGuidance />} />
-              <Route path="/offices" element={<OfficeAvailability />} />
-
-              {/* Blog Routes */}
-              <Route path="/blog" element={<BlogList />} />
-              <Route path="/blog/:id" element={<BlogDetail />} />
               <Route
-                path="/blog/create"
+                path="/blogs/create"
                 element={
-                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
+                  <PrivateRoute
+                    allowedRoles={["wereda_anti_corruption", "kifleketema_anti_corruption", "kentiba_biro"]}
+                  >
                     <BlogCreate />
                   </PrivateRoute>
                 }
               />
               <Route
-                path="/blog/edit/:id"
+                path="/blogs/edit/:id"
                 element={
-                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
+                  <PrivateRoute
+                    allowedRoles={["wereda_anti_corruption", "kifleketema_anti_corruption", "kentiba_biro"]}
+                  >
                     <BlogEdit />
                   </PrivateRoute>
                 }
               />
+              <Route
+                path="/admin/offices"
+                element={
+                  <PrivateRoute allowedRoles={["wereda_anti_corruption"]}>
+                    <AdminOffices />
+                  </PrivateRoute>
+                }
+              />
 
+              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

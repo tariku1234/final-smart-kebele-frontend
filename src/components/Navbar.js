@@ -65,11 +65,18 @@ const Navbar = () => {
                 </li>
               )}
               {user.role === "wereda_anti_corruption" && (
-                <li className="navbar-item">
-                  <Link to="/admin" className="navbar-link">
-                    Wereda Dashboard
-                  </Link>
-                </li>
+                <>
+                  <li className="navbar-item">
+                    <Link to="/admin" className="navbar-link">
+                      Wereda Dashboard
+                    </Link>
+                  </li>
+                  <li className="navbar-item">
+                    <Link to="/admin/offices" className="navbar-link">
+                      Manage Offices
+                    </Link>
+                  </li>
+                </>
               )}
               {user.role === "kifleketema_anti_corruption" && (
                 <li className="navbar-item">

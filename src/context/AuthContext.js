@@ -10,17 +10,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [userDataReady, setUserDataReady] = useState(false)
+  const [token, setToken] = useState(null)
 
   useEffect(() => {
     // Check if user is logged in
     const checkLoggedIn = async () => {
       try {
-        const token = localStorage.getItem("token")
+        const storedToken = localStorage.getItem("token")
 
-        if (token) {
+        if (storedToken) {
+          setToken(storedToken)
           const response = await fetch(`${API_URL}/api/auth/me`, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${storedToken}`,
             },
           })
 
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }) => {
           } else {
             // Token is invalid or expired
             localStorage.removeItem("token")
+            setToken(null)
             setUser(null)
             setUserDataReady(true)
           }
@@ -76,6 +79,7 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token)
+        setToken(data.token)
 
         // After login, fetch the complete user profile
         const profileResponse = await fetch(`${API_URL}/api/auth/me`, {
@@ -146,6 +150,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = () => {
     localStorage.removeItem("token")
+    setToken(null)
     setUser(null)
     setUserDataReady(true)
   }
@@ -157,6 +162,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         userDataReady,
+        token,
         login,
         register,
         logout,

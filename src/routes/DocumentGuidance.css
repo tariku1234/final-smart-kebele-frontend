@@ -103,25 +103,31 @@
   line-height: 1.6;
 }
 
+.document-eligibility,
 .document-requirements,
 .document-procedure,
-.document-contact {
+.document-contact,
+.document-notes {
   margin-bottom: 20px;
 }
 
+.document-eligibility h4,
 .document-requirements h4,
 .document-procedure h4,
-.document-contact h4 {
+.document-contact h4,
+.document-notes h4 {
   color: #2c3e50;
   margin-bottom: 10px;
   font-size: 1rem;
 }
 
+.eligibility-list,
 .requirements-list,
 .procedure-list {
   padding-left: 20px;
 }
 
+.eligibility-item,
 .requirement-item,
 .procedure-item {
   margin-bottom: 8px;
@@ -129,7 +135,8 @@
   line-height: 1.5;
 }
 
-.document-contact p {
+.document-contact p,
+.document-notes p {
   color: #555;
   line-height: 1.5;
 }
@@ -141,6 +148,19 @@
   color: #7f8c8d;
 }
 
+.alert {
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
 @media (max-width: 768px) {
   .filter-section {
     flex-direction: column;
@@ -150,4 +170,3 @@
     width: 100%;
   }
 }
-

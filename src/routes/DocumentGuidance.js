@@ -43,9 +43,9 @@ const DocumentGuidance = () => {
 
   // Filter documents based on search term and category
   const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch =
-      doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+   
+    doc.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || doc.category === selectedCategory
 
     return matchesSearch && matchesCategory
@@ -103,6 +103,20 @@ const DocumentGuidance = () => {
               <div className="document-body">
                 <p className="document-description">{doc.description}</p>
               </div>
+
+              {doc.eligibilityCriteria && doc.eligibilityCriteria.length > 0 && (
+                <div className="document-eligibility">
+                  <h4>Eligibility Criteria</h4>
+                  <ul className="eligibility-list">
+                    {doc.eligibilityCriteria.map((criterion, index) => (
+                      <li key={index} className="eligibility-item">
+                        {criterion}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="document-requirements">
                 <h4>Requirements</h4>
                 <ul className="requirements-list">
@@ -113,6 +127,7 @@ const DocumentGuidance = () => {
                   ))}
                 </ul>
               </div>
+
               <div className="document-procedure">
                 <h4>Procedure</h4>
                 <ol className="procedure-list">
@@ -123,10 +138,18 @@ const DocumentGuidance = () => {
                   ))}
                 </ol>
               </div>
+
               {doc.contactInfo && (
                 <div className="document-contact">
                   <h4>Contact Information</h4>
                   <p>{doc.contactInfo}</p>
+                </div>
+              )}
+
+              {doc.additionalNotes && (
+                <div className="document-notes">
+                  <h4>Additional Notes</h4>
+                  <p>{doc.additionalNotes}</p>
                 </div>
               )}
             </div>
@@ -138,4 +161,3 @@ const DocumentGuidance = () => {
 }
 
 export default DocumentGuidance
-

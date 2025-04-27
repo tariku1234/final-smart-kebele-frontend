@@ -107,6 +107,11 @@ const Navbar = () => {
                       User Statistics
                     </Link>
                   </li>
+                  <li className="navbar-item">
+                    <Link to="/admin/documents" className="navbar-link">
+                      Manage Documents
+                    </Link>
+                  </li>
                 </>
               )}
               <li className="navbar-item">

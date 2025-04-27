@@ -7,6 +7,7 @@ import Login from "./routes/Login"
 import Register from "./routes/Register"
 import ForgotPassword from "./routes/ForgotPassword"
 import DocumentGuidance from "./routes/DocumentGuidance"
+import AdminDocumentGuidance from "./routes/AdminDocumentGuidance"
 import NotFound from "./routes/NotFound"
 import PrivateRoute from "./components/PrivateRoute"
 import ComplaintForm from "./routes/ComplaintForm"
@@ -130,6 +131,14 @@ function App() {
                 element={
                   <PrivateRoute allowedRoles={["kentiba_biro"]}>
                     <AdminStatistics />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/documents"
+                element={
+                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
+                    <AdminDocumentGuidance />
                   </PrivateRoute>
                 }
               />

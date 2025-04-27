@@ -41,19 +41,58 @@ const AdminRegister = () => {
     wereda,
   } = formData
 
+  // Determine if kifleketema selection should be shown
+  const showKifleketemaSelection = role !== "kentiba_biro"
+
+  // Determine if wereda selection should be shown
+  const showWeredaSelection = role === "wereda_anti_corruption" && kifleketema
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+
     // Clear error when user starts typing
     if (error) setError(null)
 
-    // Reset wereda if kifleketema changes
-    if (e.target.name === "kifleketema") {
-      setFormData({ ...formData, kifleketema: e.target.value, wereda: "" })
+    if (name === "role") {
+      // If changing to kentiba_biro, reset kifleketema and wereda
+      if (value === "kentiba_biro") {
+        setFormData({
+          ...formData,
+          role: value,
+          kifleketema: "",
+          wereda: "",
+        })
+      }
+      // If changing to kifleketema_anti_corruption, just reset wereda
+      else if (value === "kifleketema_anti_corruption") {
+        setFormData({
+          ...formData,
+          role: value,
+          wereda: "",
+        })
+      }
+      // Otherwise just update the role
+      else {
+        setFormData({
+          ...formData,
+          role: value,
+        })
+      }
     }
-
-    // Reset wereda if role changes to kifleketema_anti_corruption
-    if (e.target.name === "role" && e.target.value === "kifleketema_anti_corruption") {
-      setFormData({ ...formData, role: e.target.value, wereda: "" })
+    // Reset wereda if kifleketema changes
+    else if (name === "kifleketema") {
+      setFormData({
+        ...formData,
+        kifleketema: value,
+        wereda: "",
+      })
+    }
+    // For all other fields, just update normally
+    else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      })
     }
   }
 
@@ -76,7 +115,8 @@ const AdminRegister = () => {
       return
     }
 
-    if (!kifleketema) {
+    // Kifleketema is required for non-kentiba_biro roles
+    if (role !== "kentiba_biro" && !kifleketema) {
       setError("Please select a Kifleketema (sub-city)")
       return
     }
@@ -93,24 +133,35 @@ const AdminRegister = () => {
       // Convert wereda to number if it exists
       const weredaValue = wereda ? Number(wereda) : undefined
 
+      // Create request body based on role
+      const requestBody = {
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+        idNumber,
+        address,
+        role,
+        adminCode,
+      }
+
+      // Only add kifleketema for non-kentiba_biro roles
+      if (role !== "kentiba_biro") {
+        requestBody.kifleketema = kifleketema
+      }
+
+      // Only add wereda for wereda_anti_corruption role
+      if (role === "wereda_anti_corruption") {
+        requestBody.wereda = weredaValue
+      }
+
       const response = await fetch(`${API_URL}/api/admin/register-admin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          phone,
-          password,
-          idNumber,
-          address,
-          role,
-          adminCode,
-          kifleketema,
-          wereda: weredaValue,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
@@ -292,59 +343,61 @@ const AdminRegister = () => {
             </select>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="kifleketema" className="form-label">
-                Kifleketema (Sub-City)
-              </label>
-              <select
-                id="kifleketema"
-                name="kifleketema"
-                value={kifleketema}
-                onChange={handleChange}
-                className="form-select"
-                required
-                disabled={loading || success}
-              >
-                <option value="">Select Kifleketema</option>
-                <option value="lemi_kura">Lemi Kura</option>
-                <option value="arada">Arada</option>
-                <option value="addis_ketema">Addis Ketema</option>
-                <option value="lideta">Lideta</option>
-                <option value="kirkos">Kirkos</option>
-                <option value="yeka">Yeka</option>
-                <option value="bole">Bole</option>
-                <option value="akaky_kaliti">Akaky Kaliti</option>
-                <option value="nifas_silk_lafto">Nifas Silk-Lafto</option>
-                <option value="kolfe_keranio">Kolfe Keranio</option>
-                <option value="gulele">Gulele</option>
-              </select>
-            </div>
-
-            {role === "wereda_anti_corruption" && (
+          {showKifleketemaSelection && (
+            <div className="form-row">
               <div className="form-group">
-                <label htmlFor="wereda" className="form-label">
-                  Wereda (District)
+                <label htmlFor="kifleketema" className="form-label">
+                  Kifleketema (Sub-City)
                 </label>
                 <select
-                  id="wereda"
-                  name="wereda"
-                  value={wereda}
+                  id="kifleketema"
+                  name="kifleketema"
+                  value={kifleketema}
                   onChange={handleChange}
                   className="form-select"
-                  required
-                  disabled={!kifleketema || loading || success}
+                  required={role !== "kentiba_biro"}
+                  disabled={loading || success}
                 >
-                  <option value="">Select Wereda</option>
-                  {getWeredaOptions().map((num) => (
-                    <option key={num} value={num}>
-                      Wereda {num}
-                    </option>
-                  ))}
+                  <option value="">Select Kifleketema</option>
+                  <option value="lemi_kura">Lemi Kura</option>
+                  <option value="arada">Arada</option>
+                  <option value="addis_ketema">Addis Ketema</option>
+                  <option value="lideta">Lideta</option>
+                  <option value="kirkos">Kirkos</option>
+                  <option value="yeka">Yeka</option>
+                  <option value="bole">Bole</option>
+                  <option value="akaky_kaliti">Akaky Kaliti</option>
+                  <option value="nifas_silk_lafto">Nifas Silk-Lafto</option>
+                  <option value="kolfe_keranio">Kolfe Keranio</option>
+                  <option value="gulele">Gulele</option>
                 </select>
               </div>
-            )}
-          </div>
+
+              {showWeredaSelection && (
+                <div className="form-group">
+                  <label htmlFor="wereda" className="form-label">
+                    Wereda (District)
+                  </label>
+                  <select
+                    id="wereda"
+                    name="wereda"
+                    value={wereda}
+                    onChange={handleChange}
+                    className="form-select"
+                    required={role === "wereda_anti_corruption"}
+                    disabled={!kifleketema || loading || success}
+                  >
+                    <option value="">Select Wereda</option>
+                    {getWeredaOptions().map((num) => (
+                      <option key={num} value={num}>
+                        Wereda {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="form-row">
             <div className="form-group">

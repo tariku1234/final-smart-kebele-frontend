@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 import { AuthContext } from "../context/AuthContext"
-import { API_URL, DISPLAY_NAMES, USER_ROLES } from "../config"
+import { API_URL, USER_ROLES } from "../config"
 import "./AdminOffices.css"
 
 const AdminOffices = () => {
@@ -12,6 +12,7 @@ const AdminOffices = () => {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const [officeTypes, setOfficeTypes] = useState([])
+  const [availableOfficeTypes, setAvailableOfficeTypes] = useState([])
   const [selectedOffice, setSelectedOffice] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
@@ -28,6 +29,78 @@ const AdminOffices = () => {
     morningStatus: "open",
     afternoonStatus: "open",
   })
+
+  // Get token from localStorage
+  const getToken = useCallback(() => {
+    return localStorage.getItem("token")
+  }, [])
+
+  // Fetch all office types
+  const fetchOfficeTypes = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/offices/types`)
+      const data = await response.json()
+      setOfficeTypes(data.officeTypes || [])
+    } catch (err) {
+      console.error("Error fetching office types:", err)
+      setError("Failed to fetch office types")
+    }
+  }, [])
+
+  // Fetch available office types (those not already created in this wereda)
+  const fetchAvailableOfficeTypes = useCallback(async () => {
+    if (!user || !user.kifleketema || !user.wereda) return
+
+    try {
+      const token = getToken()
+      if (!token) {
+        setError("Authentication token not found. Please log in again.")
+        return
+      }
+
+      const response = await fetch(
+        `${API_URL}/api/offices/available-types?kifleketema=${user.kifleketema}&wereda=${user.wereda}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      const data = await response.json()
+
+      if (response.ok) {
+        setAvailableOfficeTypes(data.availableTypes || [])
+      } else {
+        console.error("Error fetching available office types:", data.message)
+      }
+    } catch (err) {
+      console.error("Error fetching available office types:", err)
+    }
+  }, [user, getToken])
+
+  // Fetch offices for the admin's wereda
+  const fetchOffices = useCallback(async () => {
+    if (!user || !user.kifleketema || !user.wereda) return
+
+    try {
+      setLoading(true)
+      const url = `${API_URL}/api/offices?kifleketema=${user.kifleketema}&wereda=${user.wereda}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (response.ok) {
+        setOffices(data.offices)
+      } else {
+        setError(data.message || "Failed to fetch office information")
+      }
+    } catch (err) {
+      console.error("Error fetching offices:", err)
+      setError("Failed to connect to the server")
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
   // Check if user is authorized
   useEffect(() => {
@@ -47,47 +120,9 @@ const AdminOffices = () => {
 
     // Fetch office types and offices
     fetchOfficeTypes()
+    fetchAvailableOfficeTypes()
     fetchOffices()
-  }, [user, authLoading])
-
-  // Get token from localStorage
-  const getToken = () => {
-    return localStorage.getItem("token")
-  }
-
-  // Fetch office types
-  const fetchOfficeTypes = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/offices/types`)
-      const data = await response.json()
-      setOfficeTypes(data.officeTypes || [])
-    } catch (err) {
-      console.error("Error fetching office types:", err)
-      setError("Failed to fetch office types")
-    }
-  }
-
-  // Fetch offices for the admin's wereda
-  const fetchOffices = async () => {
-    try {
-      setLoading(true)
-      const url = `${API_URL}/api/offices?kifleketema=${user.kifleketema}&wereda=${user.wereda}`
-
-      const response = await fetch(url)
-      const data = await response.json()
-
-      if (response.ok) {
-        setOffices(data.offices)
-      } else {
-        setError(data.message || "Failed to fetch office information")
-      }
-    } catch (err) {
-      console.error("Error fetching offices:", err)
-      setError("Failed to connect to the server")
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [user, authLoading, fetchOfficeTypes, fetchAvailableOfficeTypes, fetchOffices])
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -131,6 +166,7 @@ const AdminOffices = () => {
       if (response.ok) {
         setSuccess(data.message || `Office ${isCreating ? "created" : "updated"} successfully`)
         fetchOffices()
+        fetchAvailableOfficeTypes() // Refresh available office types
         resetForm()
       } else {
         setError(data.message || `Failed to ${isCreating ? "create" : "update"} office`)
@@ -202,6 +238,7 @@ const AdminOffices = () => {
       if (response.ok) {
         setSuccess("Office deleted successfully")
         fetchOffices()
+        fetchAvailableOfficeTypes() // Refresh available office types
       } else {
         const data = await response.json()
         setError(data.message || "Failed to delete office")
@@ -283,6 +320,12 @@ const AdminOffices = () => {
     })
   }
 
+  // Get display name for office type
+  const getOfficeTypeLabel = (type) => {
+    const officeType = officeTypes.find((t) => t.value === type)
+    return officeType ? officeType.label : type
+  }
+
   if (authLoading) {
     return (
       <div className="admin-offices-container">
@@ -334,14 +377,28 @@ const AdminOffices = () => {
                 onChange={handleInputChange}
                 required
                 className="form-control"
+                disabled={isEditing} // Disable changing office type when editing
               >
                 <option value="">Select Office Type</option>
-                {officeTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
+                {isCreating
+                  ? // When creating, show only available office types
+                    availableOfficeTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))
+                  : // When editing, show all office types but disable selection
+                    officeTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
               </select>
+              {isCreating && availableOfficeTypes.length === 0 && (
+                <p className="form-help-text">
+                  All office types have been created for this wereda. You can edit existing offices instead.
+                </p>
+              )}
             </div>
 
             <div className="form-group">
@@ -449,7 +506,7 @@ const AdminOffices = () => {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-primary">
+              <button type="submit" className="btn-primary" disabled={isCreating && availableOfficeTypes.length === 0}>
                 {isCreating ? "Create Office" : "Update Office"}
               </button>
               <button type="button" className="btn-secondary" onClick={resetForm}>
@@ -463,9 +520,18 @@ const AdminOffices = () => {
       {/* Create Office Button */}
       {!isCreating && !isEditing && (
         <div className="create-office-container">
-          <button className="btn-primary create-office-btn" onClick={startCreating}>
+          <button
+            className="btn-primary create-office-btn"
+            onClick={startCreating}
+            disabled={availableOfficeTypes.length === 0}
+          >
             Create New Office
           </button>
+          {availableOfficeTypes.length === 0 && (
+            <p className="no-offices-message">
+              All office types have been created for this wereda. You can edit existing offices instead.
+            </p>
+          )}
         </div>
       )}
 
@@ -494,7 +560,7 @@ const AdminOffices = () => {
                 {offices.map((office) => (
                   <tr key={office._id}>
                     <td>{office.name}</td>
-                    <td>{DISPLAY_NAMES[office.officeType] || office.officeType}</td>
+                    <td>{getOfficeTypeLabel(office.officeType)}</td>
                     <td>
                       <span className={`status-badge ${getStatusClass(office.status)}`}>{office.status}</span>
                     </td>

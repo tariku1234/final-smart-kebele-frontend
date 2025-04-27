@@ -143,11 +143,9 @@ function App() {
                 }
               />
               <Route
-                path="/blogs/create"
+                path="/blog/create"
                 element={
-                  <PrivateRoute
-                    allowedRoles={["wereda_anti_corruption", "kifleketema_anti_corruption", "kentiba_biro"]}
-                  >
+                  <PrivateRoute allowedRoles={["kentiba_biro"]}>
                     <BlogCreate />
                   </PrivateRoute>
                 }

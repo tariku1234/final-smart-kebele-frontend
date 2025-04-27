@@ -455,7 +455,7 @@ const CitizenComplaints = () => {
               </div>
 
               <div className="complaint-footer">
-                <Link to={`/complaint-detail/${complaint._id}`} className="btn btn-secondary">
+                <Link to={`/complaint/${complaint._id}`} className="btn btn-secondary">
                   View Details
                 </Link>
 

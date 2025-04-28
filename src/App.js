@@ -151,7 +151,7 @@ function App() {
                 }
               />
               <Route
-                path="/blogs/edit/:id"
+                path="/blog/edit/:id"
                 element={
                   <PrivateRoute
                     allowedRoles={["wereda_anti_corruption", "kifleketema_anti_corruption", "kentiba_biro"]}

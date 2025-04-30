@@ -28,6 +28,8 @@ import OfficeAvailability from "./routes/OfficeAvailability"
 import AdminOffices from "./routes/AdminOffices"
 import "./App.css"
 
+import ComplaintStatsDashboard from "./routes/ComplaintStatsDashboard"
+
 function App() {
   return (
     <AuthProvider>
@@ -168,6 +170,24 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+              <Route
+                path="/complaint-statistics"
+                element={
+                  <PrivateRoute
+                    allowedRoles={[
+                      "stakeholder_office",
+                      "wereda_anti_corruption",
+                      "kifleketema_anti_corruption",
+                      "kentiba_biro",
+                      "citizen"
+                    ]}
+                  >
+                    <ComplaintStatsDashboard />
+                  </PrivateRoute>
+                }
+              />
+
 
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

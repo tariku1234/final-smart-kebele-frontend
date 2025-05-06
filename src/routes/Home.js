@@ -38,7 +38,7 @@ const Home = () => {
   return (
     <div className="home-container">
       <section className="hero-section">
-        <div className="hero-content">
+        <div className="hero-content" data-aos="fade-up">
           <h1 className="hero-title">Welcome to Smart-Kebele</h1>
           <p className="hero-description">
             A platform for citizens to interact with local government services, focusing on anti-corruption and
@@ -60,28 +60,28 @@ const Home = () => {
       <section className="features-section">
         <h2 className="section-title">Our Services</h2>
         <div className="features-grid">
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up">
             <div className="feature-icon">📝</div>
             <h3 className="feature-title">Complaint Reporting</h3>
             <p className="feature-description">
               Report corruption and service-related issues directly to the anti-corruption department.
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up" data-aos-delay="100">
             <div className="feature-icon">📄</div>
             <h3 className="feature-title">Document Guidance</h3>
             <p className="feature-description">
               Access clear information about required documents and procedures for services.
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up" data-aos-delay="200">
             <div className="feature-icon">📰</div>
             <h3 className="feature-title">Blog Posts</h3>
             <p className="feature-description">
               Stay informed about important news, updates, and announcements from local government.
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up" data-aos-delay="300">
             <div className="feature-icon">🏢</div>
             <h3 className="feature-title">Office Availability</h3>
             <p className="feature-description">
@@ -99,20 +99,25 @@ const Home = () => {
           </Link>
         </div>
         {loading ? (
-          <p>Loading office information...</p>
+          <p className="loading-text">Loading office information...</p>
         ) : error ? (
           <p className="error-message">{error}</p>
         ) : offices && offices.length === 0 ? (
-          <p>No office information available.</p>
+          <p className="loading-text">No office information available.</p>
         ) : (
           <div className="offices-grid">
-            {offices && offices.map((office) => <OfficeCard key={office._id} office={office} />)}
+            {offices &&
+              offices.map((office, index) => (
+                <div key={office._id} data-aos="fade-up" data-aos-delay={index * 100}>
+                  <OfficeCard office={office} />
+                </div>
+              ))}
           </div>
         )}
       </section>
 
       <section className="cta-section">
-        <div className="cta-content">
+        <div className="cta-content" data-aos="fade-up">
           <h2 className="cta-title">Ready to report a complaint?</h2>
           <p className="cta-description">
             Help us improve government services by reporting corruption and service-related issues.

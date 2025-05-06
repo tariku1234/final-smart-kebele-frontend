@@ -27,10 +27,22 @@ import BlogEdit from "./routes/BlogEdit"
 import OfficeAvailability from "./routes/OfficeAvailability"
 import AdminOffices from "./routes/AdminOffices"
 import "./App.css"
+import { useEffect } from "react"
 
 import ComplaintStatsDashboard from "./routes/ComplaintStatsDashboard"
 
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
 function App() {
+
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+      easing: 'ease-out'
+    });
+  }, []);
   return (
     <AuthProvider>
       <Router>

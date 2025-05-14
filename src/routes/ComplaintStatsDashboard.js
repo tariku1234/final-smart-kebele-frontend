@@ -72,6 +72,7 @@ const ComplaintStatsDashboard = () => {
         }
 
         const data = await response.json()
+        console.log("Dashboard stats data:", data) // Debug log to see the stats data
         setStats(data.stats)
       } catch (err) {
         console.error("Error fetching complaint statistics:", err)

@@ -26,10 +26,11 @@ import BlogCreate from "./routes/BlogCreate"
 import BlogEdit from "./routes/BlogEdit"
 import OfficeAvailability from "./routes/OfficeAvailability"
 import AdminOffices from "./routes/AdminOffices"
+import ReportsDashboard from "./routes/ReportsDashboard"
+import ComplaintStatsDashboard from "./routes/ComplaintStatsDashboard"
 import "./App.css"
 import { useEffect } from "react"
 
-import ComplaintStatsDashboard from "./routes/ComplaintStatsDashboard"
 
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -109,6 +110,23 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+<Route
+                path="/admin/reports"
+                element={
+                  <PrivateRoute
+                    allowedRoles={[
+                      "stakeholder_office",
+                      "wereda_anti_corruption",
+                      "kifleketema_anti_corruption",
+                      "kentiba_biro",
+                    ]}
+                  >
+                    <ReportsDashboard />
+                  </PrivateRoute>
+                }
+              />
+
               <Route
                 path="/admin/response/:id"
                 element={

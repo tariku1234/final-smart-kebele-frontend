@@ -1,3 +1,5 @@
+"use client"
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext"
 import Navbar from "./components/Navbar"
@@ -6,6 +8,7 @@ import Home from "./routes/Home"
 import Login from "./routes/Login"
 import Register from "./routes/Register"
 import ForgotPassword from "./routes/ForgotPassword"
+import ResetPassword from "./routes/ResetPassword" // Add this import
 import DocumentGuidance from "./routes/DocumentGuidance"
 import AdminDocumentGuidance from "./routes/AdminDocumentGuidance"
 import NotFound from "./routes/NotFound"
@@ -31,19 +34,17 @@ import ComplaintStatsDashboard from "./routes/ComplaintStatsDashboard"
 import "./App.css"
 import { useEffect } from "react"
 
-
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import AOS from "aos"
+import "aos/dist/aos.css"
 
 function App() {
-
   useEffect(() => {
     AOS.init({
       duration: 1000,
       once: true,
-      easing: 'ease-out'
-    });
-  }, []);
+      easing: "ease-out",
+    })
+  }, [])
   return (
     <AuthProvider>
       <Router>
@@ -55,13 +56,13 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} /> {/* Add this route */}
               <Route path="/documents" element={<DocumentGuidance />} />
               <Route path="/stakeholder-register" element={<StakeholderRegister />} />
               <Route path="/admin-register" element={<AdminRegister />} />
               <Route path="/blog" element={<BlogList />} />
               <Route path="/blog/:id" element={<BlogDetail />} />
               <Route path="/offices" element={<OfficeAvailability />} />
-
               {/* Protected Routes */}
               <Route
                 path="/complaint"
@@ -110,8 +111,7 @@ function App() {
                   </PrivateRoute>
                 }
               />
-
-<Route
+              <Route
                 path="/admin/reports"
                 element={
                   <PrivateRoute
@@ -126,7 +126,6 @@ function App() {
                   </PrivateRoute>
                 }
               />
-
               <Route
                 path="/admin/response/:id"
                 element={
@@ -200,7 +199,6 @@ function App() {
                   </PrivateRoute>
                 }
               />
-
               <Route
                 path="/complaint-statistics"
                 element={
@@ -210,15 +208,13 @@ function App() {
                       "wereda_anti_corruption",
                       "kifleketema_anti_corruption",
                       "kentiba_biro",
-                      "citizen"
+                      "citizen",
                     ]}
                   >
                     <ComplaintStatsDashboard />
                   </PrivateRoute>
                 }
               />
-
-
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>

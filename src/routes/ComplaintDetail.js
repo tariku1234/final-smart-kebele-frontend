@@ -227,7 +227,7 @@ const ComplaintDetail = () => {
     return hasResponseFromCurrentHandler && isValidStatus
   }
 
-  // Update the canEscalate function to properly handle escalation conditions
+  // FIXED: Update the canEscalate function to handle skipped stages properly
   const canEscalate = (complaint) => {
     if (!complaint) return false
 
@@ -238,39 +238,69 @@ const ComplaintDetail = () => {
       return false
     }
 
-    // Check if the complaint can be escalated based on current stage and due date
+    // FIXED: Enhanced escalation logic to handle skipped stages
     switch (complaint.currentStage) {
       case "stakeholder_first":
         // Can only escalate to next level if due date has passed
-        // For stakeholder_first, we don't allow escalation if there's a response (use second stage instead)
         return now > new Date(complaint.stakeholderFirstResponseDue) && complaint.status !== "in_progress"
+
       case "stakeholder_second":
         // Can escalate to Wereda if there's a response or due date has passed
         return (
           now > new Date(complaint.stakeholderSecondResponseDue) ||
           (complaint.responses.length > 1 && (complaint.status === "in_progress" || complaint.status === "escalated"))
         )
+
       case "wereda_first":
         // Can only escalate to next level if due date has passed
-        // For wereda_first, we don't allow escalation if there's a response (use second stage instead)
         return now > new Date(complaint.weredaFirstResponseDue) && complaint.status !== "in_progress"
+
       case "wereda_second":
         // Can escalate to Kifleketema if there's a response or due date has passed
         return (
           now > new Date(complaint.weredaSecondResponseDue) ||
           (complaint.responses.length > 3 && (complaint.status === "in_progress" || complaint.status === "escalated"))
         )
+
       case "kifleketema_first":
         // Can only escalate to next level if due date has passed
         return now > new Date(complaint.kifleketemaFirstResponseDue) && complaint.status !== "in_progress"
+
       case "kifleketema_second":
-        // Can escalate to Kentiba if there's a response or due date has passed
-        return (
-          now > new Date(complaint.kifleketemaSecondResponseDue) ||
-          (complaint.responses.length > 5 && (complaint.status === "in_progress" || complaint.status === "escalated"))
+        // FIXED: Enhanced logic for kifleketema second stage escalation
+        // Check if there's a response from kifleketema AND (due date passed OR citizen is unsatisfied)
+        const hasKifleketemaResponse = complaint.responses.some(
+          (response) => response.responderRole === "kifleketema_anti_corruption",
         )
+
+        // If there's a response, allow escalation regardless of due date
+        if (hasKifleketemaResponse && complaint.status === "in_progress") {
+          return true
+        }
+
+        // If no response and due date passed, allow escalation
+        if (complaint.kifleketemaSecondResponseDue && now > new Date(complaint.kifleketemaSecondResponseDue)) {
+          return true
+        }
+
+        // FIXED: Special case for complaints that skipped wereda and went directly to kifleketema
+        // Check if this complaint was escalated directly from stakeholder to kifleketema
+        const wasEscalatedFromStakeholder = complaint.escalationHistory?.some(
+          (esc) => esc.from === "stakeholder_office" && esc.to === "kifleketema_anti_corruption",
+        )
+
+        if (wasEscalatedFromStakeholder && hasKifleketemaResponse) {
+          console.log(
+            "Complaint was escalated directly from stakeholder to kifleketema and has response - allowing escalation to kentiba",
+          )
+          return true
+        }
+
+        return false
+
       case "kentiba":
         return false // Cannot escalate beyond Kentiba
+
       default:
         return false
     }

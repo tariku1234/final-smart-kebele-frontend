@@ -201,20 +201,30 @@ const ComplaintDetail = () => {
     }
   }
 
-  // Update the canSubmitSecondStage function to include Kifleketema
-
-  // Update the canSubmitSecondStage function to include Wereda first stage
+  // FIXED: Enhanced second stage submission logic for escalated complaints
   const canSubmitSecondStage = (complaint) => {
-    // Can submit second stage if the complaint is in the first stage (stakeholder or wereda or kifleketema) and has a response
-    return (
-      (complaint.currentStage === "stakeholder_first" ||
-        complaint.currentStage === "wereda_first" ||
-        complaint.currentStage === "kifleketema_first") &&
-      complaint.responses &&
-      complaint.responses.length > 0 &&
-      complaint.status !== "resolved" &&
-      !complaint.secondStageComplaint // Ensure no second stage complaint exists already
+    if (!complaint) return false
+
+    // Check if complaint is in first stage
+    const isFirstStage = ["stakeholder_first", "wereda_first", "kifleketema_first"].includes(complaint.currentStage)
+
+    if (!isFirstStage) return false
+
+    // Check if complaint is resolved
+    if (complaint.status === "resolved") return false
+
+    // Check if there are responses
+    if (!complaint.responses || complaint.responses.length === 0) return false
+
+    // FIXED: Check if there's a response from current handler
+    const hasResponseFromCurrentHandler = complaint.responses.some(
+      (response) => response.responderRole === complaint.currentHandler,
     )
+
+    // FIXED: Allow escalated, in_progress, and pending statuses
+    const isValidStatus = ["in_progress", "pending", "escalated"].includes(complaint.status)
+
+    return hasResponseFromCurrentHandler && isValidStatus
   }
 
   // Update the canEscalate function to properly handle escalation conditions
@@ -238,7 +248,7 @@ const ComplaintDetail = () => {
         // Can escalate to Wereda if there's a response or due date has passed
         return (
           now > new Date(complaint.stakeholderSecondResponseDue) ||
-          (complaint.responses.length > 1 && complaint.status === "in_progress")
+          (complaint.responses.length > 1 && (complaint.status === "in_progress" || complaint.status === "escalated"))
         )
       case "wereda_first":
         // Can only escalate to next level if due date has passed
@@ -248,7 +258,7 @@ const ComplaintDetail = () => {
         // Can escalate to Kifleketema if there's a response or due date has passed
         return (
           now > new Date(complaint.weredaSecondResponseDue) ||
-          (complaint.responses.length > 3 && complaint.status === "in_progress")
+          (complaint.responses.length > 3 && (complaint.status === "in_progress" || complaint.status === "escalated"))
         )
       case "kifleketema_first":
         // Can only escalate to next level if due date has passed
@@ -257,7 +267,7 @@ const ComplaintDetail = () => {
         // Can escalate to Kentiba if there's a response or due date has passed
         return (
           now > new Date(complaint.kifleketemaSecondResponseDue) ||
-          (complaint.responses.length > 5 && complaint.status === "in_progress")
+          (complaint.responses.length > 5 && (complaint.status === "in_progress" || complaint.status === "escalated"))
         )
       case "kentiba":
         return false // Cannot escalate beyond Kentiba

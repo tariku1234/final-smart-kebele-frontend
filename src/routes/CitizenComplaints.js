@@ -178,15 +178,14 @@ const CitizenComplaints = () => {
   }
 
   const canSubmitSecondStage = (complaint) => {
-    // Can submit second stage if the complaint is in the first stage (stakeholder or wereda or kifleketema)
-    // and has a response from the current handler
+    // Can submit second stage if the complaint is in the first stage and has a response
     return (
       (complaint.currentStage === "stakeholder_first" ||
         complaint.currentStage === "wereda_first" ||
         complaint.currentStage === "kifleketema_first") &&
       complaint.responses &&
       complaint.responses.length > 0 &&
-      complaint.status === "in_progress" // Only allow if there's a response (status is in_progress)
+      (complaint.status === "in_progress" || complaint.status === "pending" || complaint.status === "escalated") // Allow all valid statuses
     )
   }
 
@@ -500,3 +499,4 @@ const CitizenComplaints = () => {
 }
 
 export default CitizenComplaints
+  

@@ -99,7 +99,10 @@ const AdminDashboard = () => {
 
         if (filteredComplaints.length > 0) {
           filteredComplaints.forEach((complaint) => {
-            switch (complaint.status) {
+            // Determine the effective status for this user's perspective
+            const effectiveStatus = getEffectiveStatus(complaint, user.role)
+
+            switch (effectiveStatus) {
               case "pending":
                 complaintStats.pending++
                 break
@@ -148,6 +151,35 @@ const AdminDashboard = () => {
       default:
         return "Administrator"
     }
+  }
+
+  // Helper function to determine effective status from user's perspective
+  const getEffectiveStatus = (complaint, userRole) => {
+    // If complaint is resolved, it's resolved for everyone
+    if (complaint.status === "resolved") {
+      return "resolved"
+    }
+
+    // Check if complaint has been escalated away from this user's role
+    if (userRole === USER_ROLES.STAKEHOLDER_OFFICE) {
+      // For stakeholder offices, if current handler is not stakeholder, it's escalated
+      if (complaint.currentHandler !== "stakeholder_office") {
+        return "escalated"
+      }
+    } else if (userRole === USER_ROLES.WEREDA_ANTI_CORRUPTION) {
+      // For wereda officers, if current handler is kifleketema or kentiba, it's escalated
+      if (complaint.currentHandler === "kifleketema_anti_corruption" || complaint.currentHandler === "kentiba_biro") {
+        return "escalated"
+      }
+    } else if (userRole === USER_ROLES.KIFLEKETEMA_ANTI_CORRUPTION) {
+      // For kifleketema officers, if current handler is kentiba, it's escalated
+      if (complaint.currentHandler === "kentiba_biro") {
+        return "escalated"
+      }
+    }
+
+    // Otherwise, return the actual status
+    return complaint.status
   }
 
   // Show loading state while auth is loading or user data is not ready
@@ -237,7 +269,7 @@ const AdminDashboard = () => {
       ) : (
         <div className="complaints-container">
           {complaints.map((complaint) => (
-            <ComplaintCard key={complaint._id} complaint={complaint} />
+            <ComplaintCard key={complaint._id} complaint={complaint} userRole={user.role} />
           ))}
         </div>
       )}

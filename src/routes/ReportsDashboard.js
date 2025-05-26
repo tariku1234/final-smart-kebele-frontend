@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import { API_URL, USER_ROLES } from "../config"
@@ -25,6 +25,9 @@ const ReportsDashboard = () => {
   const { user, loading: authLoading } = useContext(AuthContext)
   const navigate = useNavigate()
 
+  // Update the activeTab state to include new tabs
+  const [activeTab, setActiveTab] = useState("complaints")
+
   // State for filters
   const [period, setPeriod] = useState("monthly")
   const [kifleketema, setKifleketema] = useState("")
@@ -32,7 +35,6 @@ const ReportsDashboard = () => {
   const [officeType, setOfficeType] = useState("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
-  const [activeTab, setActiveTab] = useState("complaints")
 
   // State for data
   const [complaintStats, setComplaintStats] = useState(null)
@@ -69,25 +71,10 @@ const ReportsDashboard = () => {
     { value: "telecommunication_office", label: "Telecommunication Office" },
     { value: "land_management_office", label: "Land Management Office" },
     { value: "tax_office", label: "Tax Office" },
-    { value: "id_office", label: "ID Office" },
-
   ]
 
-  // Redirect if not logged in or not an admin
-  useEffect(() => {
-    if (!authLoading && user === null) {
-      navigate("/login")
-      return
-    }
-
-    if (!authLoading && user && user.role === USER_ROLES.CITIZEN) {
-      navigate("/")
-      return
-    }
-  }, [user, authLoading, navigate])
-
   // Fetch complaint statistics
-  const fetchComplaintStats = async () => {
+  const fetchComplaintStats = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -130,10 +117,10 @@ const ReportsDashboard = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [period, kifleketema, wereda, officeType, startDate, endDate])
 
   // Fetch office performance data
-  const fetchOfficePerformance = async () => {
+  const fetchOfficePerformance = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -171,7 +158,20 @@ const ReportsDashboard = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [kifleketema, wereda, officeType])
+
+  // Redirect if not logged in or not an admin
+  useEffect(() => {
+    if (!authLoading && user === null) {
+      navigate("/login")
+      return
+    }
+
+    if (!authLoading && user && user.role === USER_ROLES.CITIZEN) {
+      navigate("/")
+      return
+    }
+  }, [user, authLoading, navigate])
 
   // Fetch data based on active tab
   useEffect(() => {
@@ -179,16 +179,16 @@ const ReportsDashboard = () => {
 
     if (activeTab === "complaints") {
       fetchComplaintStats()
-    } else if (activeTab === "performance") {
+    } else if (activeTab.includes("performance")) {
       fetchOfficePerformance()
     }
-  }, [user, activeTab])
+  }, [user, activeTab, fetchComplaintStats, fetchOfficePerformance])
 
   // Handle filter application
   const handleApplyFilters = () => {
     if (activeTab === "complaints") {
       fetchComplaintStats()
-    } else if (activeTab === "performance") {
+    } else if (activeTab.includes("performance")) {
       fetchOfficePerformance()
     }
   }
@@ -206,7 +206,7 @@ const ReportsDashboard = () => {
     setTimeout(() => {
       if (activeTab === "complaints") {
         fetchComplaintStats()
-      } else if (activeTab === "performance") {
+      } else if (activeTab.includes("performance")) {
         fetchOfficePerformance()
       }
     }, 0)
@@ -331,10 +331,28 @@ const ReportsDashboard = () => {
             Complaint Statistics
           </div>
           <div
-            className={`tab ${activeTab === "performance" ? "active" : ""}`}
-            onClick={() => setActiveTab("performance")}
+            className={`tab ${activeTab === "office-performance" ? "active" : ""}`}
+            onClick={() => setActiveTab("office-performance")}
           >
             Office Performance
+          </div>
+          <div
+            className={`tab ${activeTab === "wereda-performance" ? "active" : ""}`}
+            onClick={() => setActiveTab("wereda-performance")}
+          >
+            Wereda Performance
+          </div>
+          <div
+            className={`tab ${activeTab === "kifleketema-performance" ? "active" : ""}`}
+            onClick={() => setActiveTab("kifleketema-performance")}
+          >
+            Kifleketema Performance
+          </div>
+          <div
+            className={`tab ${activeTab === "kentiba-performance" ? "active" : ""}`}
+            onClick={() => setActiveTab("kentiba-performance")}
+          >
+            Kentiba Performance
           </div>
         </div>
       </div>
@@ -633,72 +651,267 @@ const ReportsDashboard = () => {
         </>
       )}
 
-      {/* Office Performance Tab Content */}
-      {activeTab === "performance" && (
+      {/* Performance Tabs Content */}
+      {activeTab.includes("performance") && (
         <>
           {loading ? (
             <p className="loading-text">Loading performance data...</p>
-          ) : !officePerformance || !officePerformance.offices || officePerformance.offices.length === 0 ? (
+          ) : !officePerformance ? (
             <div className="no-data-message">No performance data available for the selected filters.</div>
           ) : (
             <>
-              <h3 style={{ marginBottom: "20px" }}>
-                Office Performance Metrics
-                {kifleketema && ` in ${kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}`}
-                {wereda && ` Wereda ${wereda}`}
-                {officeType && ` - ${officeType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}`}
-              </h3>
+              {/* Office Performance */}
+              {activeTab === "office-performance" && (
+                <>
+                  <h3 style={{ marginBottom: "20px" }}>
+                    Stakeholder Office Performance Metrics
+                    {kifleketema && ` in ${kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}`}
+                    {wereda && ` Wereda ${wereda}`}
+                    {officeType && ` - ${officeType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}`}
+                  </h3>
 
-              {/* Performance Cards */}
-              {officePerformance.offices.map((office, index) => (
-                <div className="performance-card" key={index}>
-                  <div className="performance-header">
-                    <div className="performance-office">{office.officeName}</div>
-                    <div className="performance-location">
-                      {office.officeType} - {office.kifleketema}{" "}
-                      {office.wereda !== "N/A" ? `Wereda ${office.wereda}` : ""}
-                    </div>
-                  </div>
+                  {officePerformance.stakeholderOffices && officePerformance.stakeholderOffices.length > 0 ? (
+                    officePerformance.stakeholderOffices.map((office, index) => (
+                      <div className="performance-card" key={index}>
+                        <div className="performance-header">
+                          <div className="performance-office">{office.name}</div>
+                          <div className="performance-location">
+                            {office.type} - {office.kifleketema} Wereda {office.wereda}
+                          </div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{office.totalComplaints}</div>
+                          <div className="metric-label">Total Complaints</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{office.resolvedComplaints}</div>
+                          <div className="metric-label">Resolved</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{office.escalatedComplaints}</div>
+                          <div className="metric-label">Escalated</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(office.responseRate) > 70 ? "good-metric" : Number.parseFloat(office.responseRate) > 40 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {office.responseRate}%
+                          </div>
+                          <div className="metric-label">Response Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(office.escalationRate) < 20 ? "good-metric" : Number.parseFloat(office.escalationRate) < 50 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {office.escalationRate}%
+                          </div>
+                          <div className="metric-label">Escalation Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{office.averageResponseTime} days</div>
+                          <div className="metric-label">Avg. Response Time</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{office.pendingComplaints}</div>
+                          <div className="metric-label">Pending</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{office.inProgressComplaints}</div>
+                          <div className="metric-label">In Progress</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-data-message">No stakeholder office performance data available.</div>
+                  )}
+                </>
+              )}
 
-                  <div className="performance-metric">
-                    <div className="metric-value">{office.totalComplaints}</div>
-                    <div className="metric-label">Total Complaints</div>
-                  </div>
+              {/* Wereda Performance */}
+              {activeTab === "wereda-performance" && (
+                <>
+                  <h3 style={{ marginBottom: "20px" }}>
+                    Wereda Administrator Performance Metrics
+                    {kifleketema && ` in ${kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}`}
+                    {wereda && ` Wereda ${wereda}`}
+                  </h3>
 
-                  <div className="performance-metric">
-                    <div className="metric-value">{office.resolvedComplaints}</div>
-                    <div className="metric-label">Resolved</div>
-                  </div>
+                  {officePerformance.weredaAdministrators && officePerformance.weredaAdministrators.length > 0 ? (
+                    officePerformance.weredaAdministrators.map((admin, index) => (
+                      <div className="performance-card wereda-admin" key={index}>
+                        <div className="performance-header">
+                          <div className="performance-office">{admin.name}</div>
+                          <div className="performance-location">
+                            Wereda Anti-Corruption - {admin.kifleketema} Wereda {admin.wereda}
+                          </div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.totalComplaints}</div>
+                          <div className="metric-label">Handled Complaints</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.resolvedComplaints}</div>
+                          <div className="metric-label">Resolved</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.escalatedComplaints}</div>
+                          <div className="metric-label">Escalated Further</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(admin.responseRate) > 70 ? "good-metric" : Number.parseFloat(admin.responseRate) > 40 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {admin.responseRate}%
+                          </div>
+                          <div className="metric-label">Response Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(admin.escalationRate) < 30 ? "good-metric" : Number.parseFloat(admin.escalationRate) < 60 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {admin.escalationRate}%
+                          </div>
+                          <div className="metric-label">Escalation Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.averageResponseTime} days</div>
+                          <div className="metric-label">Avg. Response Time</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.pendingComplaints}</div>
+                          <div className="metric-label">Pending</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.inProgressComplaints}</div>
+                          <div className="metric-label">In Progress</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-data-message">No wereda administrator performance data available.</div>
+                  )}
+                </>
+              )}
 
-                  <div className="performance-metric">
-                    <div className="metric-value">{office.escalatedComplaints}</div>
-                    <div className="metric-label">Escalated</div>
-                  </div>
+              {/* Kifleketema Performance */}
+              {activeTab === "kifleketema-performance" && (
+                <>
+                  <h3 style={{ marginBottom: "20px" }}>
+                    Kifleketema Administrator Performance Metrics
+                    {kifleketema && ` in ${kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}`}
+                  </h3>
 
-                  <div className="performance-metric">
-                    <div
-                      className={`metric-value ${Number.parseFloat(office.responseRate) > 70 ? "good-metric" : Number.parseFloat(office.responseRate) > 40 ? "warning-metric" : "bad-metric"}`}
-                    >
-                      {office.responseRate}%
-                    </div>
-                    <div className="metric-label">Response Rate</div>
-                  </div>
+                  {officePerformance.kifleketemaAdministrators &&
+                  officePerformance.kifleketemaAdministrators.length > 0 ? (
+                    officePerformance.kifleketemaAdministrators.map((admin, index) => (
+                      <div className="performance-card kifleketema-admin" key={index}>
+                        <div className="performance-header">
+                          <div className="performance-office">{admin.name}</div>
+                          <div className="performance-location">Kifleketema Anti-Corruption - {admin.kifleketema}</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.totalComplaints}</div>
+                          <div className="metric-label">Handled Complaints</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.resolvedComplaints}</div>
+                          <div className="metric-label">Resolved</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.escalatedComplaints}</div>
+                          <div className="metric-label">Escalated to Kentiba</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(admin.responseRate) > 70 ? "good-metric" : Number.parseFloat(admin.responseRate) > 40 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {admin.responseRate}%
+                          </div>
+                          <div className="metric-label">Response Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(admin.escalationRate) < 20 ? "good-metric" : Number.parseFloat(admin.escalationRate) < 40 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {admin.escalationRate}%
+                          </div>
+                          <div className="metric-label">Escalation Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.averageResponseTime} days</div>
+                          <div className="metric-label">Avg. Response Time</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.pendingComplaints}</div>
+                          <div className="metric-label">Pending</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.inProgressComplaints}</div>
+                          <div className="metric-label">In Progress</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-data-message">No kifleketema administrator performance data available.</div>
+                  )}
+                </>
+              )}
 
-                  <div className="performance-metric">
-                    <div
-                      className={`metric-value ${Number.parseFloat(office.escalationRate) < 20 ? "good-metric" : Number.parseFloat(office.escalationRate) < 50 ? "warning-metric" : "bad-metric"}`}
-                    >
-                      {office.escalationRate}%
-                    </div>
-                    <div className="metric-label">Escalation Rate</div>
-                  </div>
+              {/* Kentiba Performance */}
+              {activeTab === "kentiba-performance" && (
+                <>
+                  <h3 style={{ marginBottom: "20px" }}>Kentiba Biro Performance Metrics - Final Authority</h3>
 
-                  <div className="performance-metric">
-                    <div className="metric-value">{office.averageResolutionTime.toFixed(1)} days</div>
-                    <div className="metric-label">Avg. Resolution Time</div>
-                  </div>
-                </div>
-              ))}
+                  {officePerformance.kentibaBiro && officePerformance.kentibaBiro.length > 0 ? (
+                    officePerformance.kentibaBiro.map((admin, index) => (
+                      <div className="performance-card kentiba-admin" key={index}>
+                        <div className="performance-header">
+                          <div className="performance-office">{admin.name}</div>
+                          <div className="performance-location">{admin.role} - Final Authority</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.totalComplaints}</div>
+                          <div className="metric-label">Final Stage Complaints</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.resolvedComplaints}</div>
+                          <div className="metric-label">Resolved</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">N/A</div>
+                          <div className="metric-label">Escalated (Final Level)</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div
+                            className={`metric-value ${Number.parseFloat(admin.responseRate) > 70 ? "good-metric" : Number.parseFloat(admin.responseRate) > 40 ? "warning-metric" : "bad-metric"}`}
+                          >
+                            {admin.responseRate}%
+                          </div>
+                          <div className="metric-label">Response Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value good-metric">0.0%</div>
+                          <div className="metric-label">Escalation Rate</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.averageResponseTime} days</div>
+                          <div className="metric-label">Avg. Response Time</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.pendingComplaints || 0}</div>
+                          <div className="metric-label">Pending</div>
+                        </div>
+                        <div className="performance-metric">
+                          <div className="metric-value">{admin.inProgressComplaints || 0}</div>
+                          <div className="metric-label">In Progress</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-data-message">No kentiba biro performance data available.</div>
+                  )}
+                </>
+              )}
             </>
           )}
         </>

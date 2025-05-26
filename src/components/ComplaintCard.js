@@ -1,7 +1,36 @@
 import { Link } from "react-router-dom"
 import "./ComplaintCard.css"
 
-const ComplaintCard = ({ complaint }) => {
+const ComplaintCard = ({ complaint, userRole }) => {
+  // Helper function to determine effective status from user's perspective
+  const getEffectiveStatus = (complaint, userRole) => {
+    // If complaint is resolved, it's resolved for everyone
+    if (complaint.status === "resolved") {
+      return "resolved"
+    }
+
+    // Check if complaint has been escalated away from this user's role
+    if (userRole === "stakeholder_office") {
+      // For stakeholder offices, if current handler is not stakeholder, it's escalated
+      if (complaint.currentHandler !== "stakeholder_office") {
+        return "escalated"
+      }
+    } else if (userRole === "wereda_anti_corruption") {
+      // For wereda officers, if current handler is kifleketema or kentiba, it's escalated
+      if (complaint.currentHandler === "kifleketema_anti_corruption" || complaint.currentHandler === "kentiba_biro") {
+        return "escalated"
+      }
+    } else if (userRole === "kifleketema_anti_corruption") {
+      // For kifleketema officers, if current handler is kentiba, it's escalated
+      if (complaint.currentHandler === "kentiba_biro") {
+        return "escalated"
+      }
+    }
+
+    // Otherwise, return the actual status
+    return complaint.status
+  }
+
   const getStatusBadgeClass = (status) => {
     if (!status) return "badge badge-pending"
 
@@ -61,11 +90,13 @@ const ComplaintCard = ({ complaint }) => {
     return description.length > 150 ? `${description.substring(0, 150)}...` : description
   }
 
+  const effectiveStatus = getEffectiveStatus(complaint, userRole)
+
   return (
     <div className="complaint-card">
       <div className="complaint-header">
         <h3 className="complaint-title">{complaint.title || "Untitled Complaint"}</h3>
-        <span className={getStatusBadgeClass(complaint.status)}>{getStatusText(complaint.status)}</span>
+        <span className={getStatusBadgeClass(effectiveStatus)}>{getStatusText(effectiveStatus)}</span>
       </div>
       <div className="complaint-body">
         <p className="complaint-description">{getDescription(complaint.description)}</p>
@@ -90,4 +121,3 @@ const ComplaintCard = ({ complaint }) => {
 }
 
 export default ComplaintCard
-

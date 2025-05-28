@@ -129,6 +129,10 @@
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
+  /* FIX: Add max-height and make it scrollable */
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
 }
 
 .document-card::before {
@@ -161,6 +165,8 @@
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid #f0f0f0;
+  /* FIX: Keep header fixed */
+  flex-shrink: 0;
 }
 
 .document-title {
@@ -195,12 +201,40 @@
 
 .document-body {
   margin-bottom: 20px;
+  /* FIX: Keep body fixed */
+  flex-shrink: 0;
 }
 
 .document-description {
   color: #555;
   line-height: 1.7;
   font-size: 0.95rem;
+}
+
+/* FIX: Make content scrollable */
+.document-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-right: -10px;
+}
+
+.document-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.document-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.document-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.document-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .document-eligibility,
@@ -362,5 +396,10 @@
 
   .documents-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* FIX: Adjust max-height for mobile */
+  .document-card {
+    max-height: 500px;
   }
 }

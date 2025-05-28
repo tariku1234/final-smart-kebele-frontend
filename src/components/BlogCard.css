@@ -8,7 +8,6 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  height: 100%;
   position: relative;
 }
 
@@ -96,7 +95,7 @@
 
 .blog-image-container {
   width: 100%;
-  height: 220px; /* Increased height for better visual */
+  height: 220px;
   overflow: hidden;
   position: relative;
 }
@@ -136,6 +135,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  min-height: 120px; /* Fixed minimum height for content */
 }
 
 .blog-title {
@@ -156,6 +156,84 @@
   line-height: 1.7;
   margin: 0;
   font-size: 0.95rem;
+  flex-grow: 1; /* Takes up remaining space */
+}
+
+/* Fixed position engagement section */
+.blog-engagement-fixed {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  margin-top: auto; /* Pushes to bottom */
+}
+
+.engagement-stats {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.comment-stat {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #65676b;
+}
+
+.comment-icon {
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+.comment-count {
+  font-weight: 500;
+}
+
+.comment-form {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.comment-input {
+  flex: 1;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  background: transparent;
+}
+
+.comment-input::placeholder {
+  color: #8e8e8e;
+}
+
+.comment-submit {
+  background-color: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin: 2px;
+}
+
+.comment-submit:hover {
+  background-color: #166fe5;
+}
+
+.comment-submit:disabled {
+  background-color: #e4e6eb;
+  color: #bcc0c4;
+  cursor: not-allowed;
 }
 
 .blog-card-footer {
@@ -165,7 +243,6 @@
   justify-content: space-between;
   align-items: center;
   background-color: #fafafa;
-  margin-top: auto;
 }
 
 .blog-read-more {
@@ -205,6 +282,10 @@
 
   .blog-title {
     font-size: 1.15rem;
+  }
+
+  .blog-card-content {
+    min-height: 100px;
   }
 }
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useContext } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import { API_URL } from "../config"
+import CommentSection from "../components/CommentSection"
 import "./BlogDetail.css"
 
 const BlogDetail = () => {
@@ -16,18 +17,39 @@ const BlogDetail = () => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    // If the ID is "create", we should redirect to the create page
+    if (id === "create") {
+      if (user && user.role === "kentiba_biro") {
+        navigate("/blog/create")
+      } else {
+        navigate("/blog")
+      }
+      return
+    }
+
     const fetchPost = async () => {
       try {
         setLoading(true)
         const token = localStorage.getItem("token")
         const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
+        console.log(`Fetching blog post with ID: ${id}`)
+
+        // Validate that the ID is a valid MongoDB ObjectId
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+          setError("Invalid blog post ID format")
+          setLoading(false)
+          return
+        }
+
         const response = await fetch(`${API_URL}/api/blog/${id}`, { headers })
         const data = await response.json()
 
         if (response.ok) {
+          console.log("Blog post data:", data)
           setPost(data.blogPost)
         } else {
+          console.error("Failed to fetch blog post:", data)
           setError(data.message || "Failed to fetch blog post")
         }
       } catch (err) {
@@ -39,7 +61,7 @@ const BlogDetail = () => {
     }
 
     fetchPost()
-  }, [id])
+  }, [id, navigate, user])
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" }
@@ -191,6 +213,9 @@ const BlogDetail = () => {
           ))}
         </div>
       </article>
+
+      {/* Comment Section */}
+      <CommentSection blogPostId={id} />
     </div>
   )
 }

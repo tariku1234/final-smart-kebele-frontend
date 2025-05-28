@@ -1,14 +1,80 @@
+"use client"
+
 import { Link } from "react-router-dom"
+import { useState, useEffect, useContext, useCallback } from "react"
+import { useNavigate } from "react-router-dom"
+import { AuthContext } from "../context/AuthContext"
 import { API_URL } from "../config"
 import "./BlogCard.css"
 
 const BlogCard = ({ post }) => {
+  const { user } = useContext(AuthContext)
+  const navigate = useNavigate()
+  const [stats, setStats] = useState({
+    commentCount: 0,
+  })
+  const [newComment, setNewComment] = useState("")
+  const [isCommenting, setIsCommenting] = useState(false)
+
+  // Fetch only comment count since reactions are for comments, not blog posts
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/comments/${post._id}/stats`)
+      if (response.ok) {
+        const data = await response.json()
+        setStats({ commentCount: data.commentCount || 0 })
+      }
+    } catch (err) {
+      console.error("Error fetching engagement stats:", err)
+    }
+  }, [post._id])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  const handleComment = async (e) => {
+    e.preventDefault()
+    if (!user) {
+      navigate("/login")
+      return
+    }
+
+    if (!newComment.trim() || isCommenting) return
+
+    try {
+      setIsCommenting(true)
+      const token = localStorage.getItem("token")
+      const response = await fetch(`${API_URL}/api/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          content: newComment,
+          blogPostId: post._id,
+        }),
+      })
+
+      if (response.ok) {
+        setNewComment("")
+        fetchStats() // Refresh stats
+      } else {
+        console.error("Comment failed:", await response.text())
+      }
+    } catch (err) {
+      console.error("Error posting comment:", err)
+    } finally {
+      setIsCommenting(false)
+    }
+  }
+
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" }
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
 
-  // Get category display name
   const getCategoryName = (category) => {
     const categories = {
       announcement: "Announcement",
@@ -20,31 +86,25 @@ const BlogCard = ({ post }) => {
     return categories[category] || "Other"
   }
 
-  // Truncate content for preview
   const truncateContent = (content, maxLength = 150) => {
     if (content.length <= maxLength) return content
     return content.substr(0, maxLength) + "..."
   }
 
-  // Function to get the full image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "/placeholder.svg"
 
-    // If the path already starts with http or https, it's an absolute URL
     if (imagePath.startsWith("http")) {
       return imagePath
     }
 
-    // If the path starts with a slash, it's relative to the domain
     if (imagePath.startsWith("/")) {
       return `${API_URL}${imagePath}`
     }
 
-    // Otherwise, assume it's a relative path and prepend the API URL and /uploads/
     return `${API_URL}/uploads/${imagePath}`
   }
 
-  // Determine if the featured media is a video
   const isVideo = (path) => {
     if (!path) return false
     const videoExtensions = [".mp4", ".webm", ".ogg"]
@@ -90,6 +150,30 @@ const BlogCard = ({ post }) => {
       <div className="blog-card-content">
         <h3 className="blog-title">{post.title}</h3>
         <p className="blog-excerpt">{truncateContent(post.content)}</p>
+      </div>
+
+      {/* Fixed position engagement section */}
+      <div className="blog-engagement-fixed">
+        <div className="engagement-stats">
+          <div className="comment-stat">
+            <span className="comment-icon">💬</span>
+            <span className="comment-count">{stats.commentCount} comments</span>
+          </div>
+        </div>
+
+        <form onSubmit={handleComment} className="comment-form">
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+            className="comment-input"
+            disabled={!user || isCommenting}
+          />
+          <button type="submit" className="comment-submit" disabled={!user || !newComment.trim() || isCommenting}>
+            {isCommenting ? "..." : "Send"}
+          </button>
+        </form>
       </div>
 
       <div className="blog-card-footer">

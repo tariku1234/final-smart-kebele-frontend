@@ -1,0 +1,181 @@
+.blog-engagement {
+    padding: 12px 0;
+    border-top: 1px solid #e1e5e9;
+    margin-top: 12px;
+  }
+  
+  .engagement-loading {
+    padding: 8px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .engagement-stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .reaction-stat,
+  .comment-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #65676b;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: #f0f2f5;
+    transition: all 0.2s ease;
+  }
+  
+  .comment-stat {
+    cursor: pointer;
+  }
+  
+  .comment-stat:hover {
+    background: #e4e6ea;
+    color: #1877f2;
+  }
+  
+  .like-stat {
+    color: #1877f2;
+    background: #e7f3ff;
+  }
+  
+  .dislike-stat {
+    color: #e41e3f;
+    background: #ffebee;
+  }
+  
+  .no-engagement {
+    font-size: 14px;
+    color: #8a8d91;
+    font-style: italic;
+  }
+  
+  .quick-comment-section {
+    margin: 12px 0;
+  }
+  
+  .quick-comment-form {
+    width: 100%;
+  }
+  
+  .comment-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0f2f5;
+    border-radius: 20px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .comment-input-wrapper:focus-within {
+    border-color: #1877f2;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+  }
+  
+  .quick-comment-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: #1c1e21;
+    padding: 4px 0;
+  }
+  
+  .quick-comment-input::placeholder {
+    color: #8a8d91;
+  }
+  
+  .quick-comment-submit {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+  }
+  
+  .quick-comment-submit:hover:not(:disabled) {
+    opacity: 1;
+    background: #e4e6ea;
+  }
+  
+  .quick-comment-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .login-prompt-small {
+    text-align: center;
+    padding: 8px;
+  }
+  
+  .login-link {
+    background: none;
+    border: none;
+    color: #1877f2;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+  }
+  
+  .login-link:hover {
+    color: #166fe5;
+  }
+  
+  .engagement-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  
+  .engagement-btn {
+    background: none;
+    border: 1px solid #ddd;
+    color: #65676b;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .engagement-btn:hover {
+    background: #f0f2f5;
+    border-color: #1877f2;
+    color: #1877f2;
+  }
+  
+  .view-comments-btn {
+    font-weight: 500;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .engagement-stats {
+      gap: 12px;
+    }
+  
+    .reaction-stat,
+    .comment-stat {
+      font-size: 13px;
+      padding: 3px 6px;
+    }
+  
+    .quick-comment-input {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+  }
+  

@@ -247,7 +247,7 @@ const ComplaintForm = () => {
         throw new Error(errorData.message || `Server responded with status: ${response.status}`)
       }
 
-      const data = await response.json()
+      await response.json() // eslint-disable-line no-unused-vars
 
       setSuccess(true)
       // Reset form

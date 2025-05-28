@@ -4,6 +4,7 @@ import { useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import "./Register.css"
+import { useEmailValidation } from "../hooks/useEmailValidation"
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -20,13 +21,25 @@ const Register = () => {
   const [loading, setLoading] = useState(false)
   const { register, error, setError } = useContext(AuthContext)
   const navigate = useNavigate()
+  const { validateEmail, isValidating, validationResult, clearValidation } = useEmailValidation()
 
   const { firstName, lastName, email, phone, password, confirmPassword, idNumber, address } = formData
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
     // Clear error when user starts typing
     if (error) setError(null)
+
+    // Validate email when email field changes
+    if (e.target.name === "email" && e.target.value) {
+      // Debounce email validation
+      setTimeout(async () => {
+        if (e.target.value === formData.email) return // Value changed, skip validation
+        await validateEmail(e.target.value)
+      }, 1000)
+    } else if (e.target.name === "email" && !e.target.value) {
+      clearValidation()
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -41,6 +54,15 @@ const Register = () => {
     if (password.length < 6) {
       setError("Password must be at least 6 characters")
       return
+    }
+
+    // Validate email before submission
+    if (email) {
+      const emailValidation = await validateEmail(email)
+      if (!emailValidation.isValid) {
+        setError(`Email validation failed: ${emailValidation.reason}`)
+        return
+      }
     }
 
     setLoading(true)
@@ -118,10 +140,16 @@ const Register = () => {
                 name="email"
                 value={email}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${validationResult ? (validationResult.isValid ? "valid" : "invalid") : ""}`}
                 placeholder="Enter your email"
                 required
               />
+              {isValidating && <small className="form-text text-info">Validating email...</small>}
+              {validationResult && !isValidating && (
+                <small className={`form-text ${validationResult.isValid ? "text-success" : "text-danger"}`}>
+                  {validationResult.reason}
+                </small>
+              )}
             </div>
 
             <div className="form-group">
@@ -226,4 +254,3 @@ const Register = () => {
 }
 
 export default Register
-

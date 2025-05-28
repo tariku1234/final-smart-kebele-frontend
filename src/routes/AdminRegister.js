@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { API_URL, WEREDA_COUNT } from "../config"
 import "./AdminRegister.css"
+import { useEmailValidation } from "../hooks/useEmailValidation"
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +26,8 @@ const AdminRegister = () => {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const navigate = useNavigate()
+
+  const { validateEmail, isValidating, validationResult, clearValidation } = useEmailValidation()
 
   const {
     firstName,
@@ -94,6 +97,17 @@ const AdminRegister = () => {
         [name]: value,
       })
     }
+
+    // Validate email when email field changes
+    if (name === "email" && value) {
+      // Debounce email validation
+      setTimeout(async () => {
+        if (value === formData.email) return // Value changed, skip validation
+        await validateEmail(value)
+      }, 1000)
+    } else if (name === "email" && !value) {
+      clearValidation()
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -125,6 +139,15 @@ const AdminRegister = () => {
     if (role === "wereda_anti_corruption" && !wereda) {
       setError("Please select a Wereda (district)")
       return
+    }
+
+    // Validate email before submission
+    if (email) {
+      const emailValidation = await validateEmail(email)
+      if (!emailValidation.isValid) {
+        setError(`Email validation failed: ${emailValidation.reason}`)
+        return
+      }
     }
 
     setLoading(true)
@@ -265,11 +288,17 @@ const AdminRegister = () => {
                 name="email"
                 value={email}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${validationResult ? (validationResult.isValid ? "valid" : "invalid") : ""}`}
                 placeholder="Enter your email"
                 required
                 disabled={loading || success}
               />
+              {isValidating && <small className="form-text text-info">Validating email...</small>}
+              {validationResult && !isValidating && (
+                <small className={`form-text ${validationResult.isValid ? "text-success" : "text-danger"}`}>
+                  {validationResult.reason}
+                </small>
+              )}
             </div>
 
             <div className="form-group">

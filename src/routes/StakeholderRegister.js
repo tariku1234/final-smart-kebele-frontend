@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { API_URL, WEREDA_COUNT } from "../config"
 import "./StakeholderRegister.css"
+import { useEmailValidation } from "../hooks/useEmailValidation"
 
 const StakeholderRegister = () => {
   const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const StakeholderRegister = () => {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
+  const { validateEmail, isValidating, validationResult, clearValidation } = useEmailValidation()
 
   const {
     firstName,
@@ -45,7 +47,7 @@ const StakeholderRegister = () => {
     wereda,
   } = formData
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
     // Clear error when user starts typing
     if (error) setError(null)
@@ -53,6 +55,17 @@ const StakeholderRegister = () => {
     // Reset wereda if kifleketema changes
     if (e.target.name === "kifleketema") {
       setFormData({ ...formData, kifleketema: e.target.value, wereda: "" })
+    }
+
+    // Validate email when email field changes
+    if (e.target.name === "email" && e.target.value) {
+      // Debounce email validation
+      setTimeout(async () => {
+        if (e.target.value === formData.email) return // Value changed, skip validation
+        await validateEmail(e.target.value)
+      }, 1000)
+    } else if (e.target.name === "email" && !e.target.value) {
+      clearValidation()
     }
   }
 
@@ -78,6 +91,15 @@ const StakeholderRegister = () => {
     if (!wereda) {
       setError("Please select a Wereda (district)")
       return
+    }
+
+    // Validate email before submission
+    if (email) {
+      const emailValidation = await validateEmail(email)
+      if (!emailValidation.isValid) {
+        setError(`Email validation failed: ${emailValidation.reason}`)
+        return
+      }
     }
 
     setLoading(true)
@@ -212,11 +234,17 @@ const StakeholderRegister = () => {
                 name="email"
                 value={email}
                 onChange={handleChange}
-                className="form-input"
+                className={`form-input ${validationResult ? (validationResult.isValid ? "valid" : "invalid") : ""}`}
                 placeholder="Enter your email"
                 required
                 disabled={success}
               />
+              {isValidating && <small className="form-text text-info">Validating email...</small>}
+              {validationResult && !isValidating && (
+                <small className={`form-text ${validationResult.isValid ? "text-success" : "text-danger"}`}>
+                  {validationResult.reason}
+                </small>
+              )}
             </div>
 
             <div className="form-group">

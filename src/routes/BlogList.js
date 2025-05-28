@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Link } from "react-router-dom"
 import BlogCard from "../components/BlogCard"
 import { API_URL } from "../config"
@@ -15,29 +15,7 @@ const BlogList = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [isKentibaBiro, setIsKentibaBiro] = useState(false)
 
-  useEffect(() => {
-    // Check if user is Kentiba Biro
-    const token = localStorage.getItem("token")
-    if (token) {
-      fetch(`${API_URL}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.user && data.user.role === "kentiba_biro") {
-            setIsKentibaBiro(true)
-          }
-        })
-        .catch((err) => console.error("Error checking user role:", err))
-    }
-
-    // Fetch blog posts
-    fetchPosts()
-  }, [filter, currentPage])
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true)
       let url = `${API_URL}/api/blog?page=${currentPage}`
@@ -64,7 +42,29 @@ const BlogList = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter, currentPage])
+
+  useEffect(() => {
+    // Check if user is Kentiba Biro
+    const token = localStorage.getItem("token")
+    if (token) {
+      fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user && data.user.role === "kentiba_biro") {
+            setIsKentibaBiro(true)
+          }
+        })
+        .catch((err) => console.error("Error checking user role:", err))
+    }
+
+    // Fetch blog posts
+    fetchPosts()
+  }, [fetchPosts])
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value)

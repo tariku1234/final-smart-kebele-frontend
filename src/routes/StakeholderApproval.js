@@ -19,6 +19,11 @@ const StakeholderApproval = () => {
     stakeholderId: null,
     reason: "",
   })
+  const [deleteData, setDeleteData] = useState({
+    isOpen: false,
+    stakeholderId: null,
+    stakeholderName: "",
+  })
 
   // Redirect if not logged in or not Kentiba Biro
   useEffect(() => {
@@ -164,6 +169,48 @@ const StakeholderApproval = () => {
     }
   }
 
+  const openDeleteModal = (id, name) => {
+    setDeleteData({
+      isOpen: true,
+      stakeholderId: id,
+      stakeholderName: name,
+    })
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteData({
+      isOpen: false,
+      stakeholderId: null,
+      stakeholderName: "",
+    })
+  }
+
+  const handleDelete = async () => {
+    try {
+      const token = localStorage.getItem("token")
+
+      const response = await fetch(`${API_URL}/api/stakeholders/${deleteData.stakeholderId}/delete`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Remove the deleted stakeholder from the list
+        setStakeholders(stakeholders.filter((stakeholder) => stakeholder._id !== deleteData.stakeholderId))
+        closeDeleteModal()
+      } else {
+        setError(data.message || "Failed to delete stakeholder")
+      }
+    } catch (err) {
+      console.error("Error deleting stakeholder:", err)
+      setError("Failed to connect to the server")
+    }
+  }
+
   if (!user || user.role !== "kentiba_biro") {
     return null
   }
@@ -199,6 +246,7 @@ const StakeholderApproval = () => {
                 <th>Contact Person</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Location</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -212,21 +260,37 @@ const StakeholderApproval = () => {
                   <td>{stakeholder.email}</td>
                   <td>{stakeholder.phone}</td>
                   <td>
+                    {stakeholder.kifleketema
+                      ? stakeholder.kifleketema.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+                      : "N/A"}
+                    {stakeholder.wereda ? ` - Wereda ${stakeholder.wereda}` : ""}
+                  </td>
+                  <td>
                     <span className={`status-badge ${stakeholder.isApproved ? "approved" : "pending"}`}>
                       {stakeholder.isApproved ? "Approved" : "Pending"}
                     </span>
                   </td>
                   <td>
-                    {!stakeholder.isApproved && (
-                      <div className="action-buttons">
-                        <button onClick={() => handleApprove(stakeholder._id)} className="btn btn-success btn-sm">
-                          Approve
+                    <div className="action-buttons">
+                      {!stakeholder.isApproved && (
+                        <>
+                          <button onClick={() => handleApprove(stakeholder._id)} className="btn btn-success btn-sm">
+                            Approve
+                          </button>
+                          <button onClick={() => openRejectionModal(stakeholder._id)} className="btn btn-danger btn-sm">
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {stakeholder.isApproved && (
+                        <button
+                          onClick={() => openDeleteModal(stakeholder._id, stakeholder.officeName)}
+                          className="btn btn-danger btn-sm"
+                        >
+                          Delete
                         </button>
-                        <button onClick={() => openRejectionModal(stakeholder._id)} className="btn btn-danger btn-sm">
-                          Reject
-                        </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -267,9 +331,29 @@ const StakeholderApproval = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Modal */}
+      {deleteData.isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <h3 className="modal-title">Delete Stakeholder Office</h3>
+            <p>
+              Are you sure you want to permanently delete <strong>{deleteData.stakeholderName}</strong>?
+            </p>
+            <p className="warning-text">This action cannot be undone and will affect all related complaints.</p>
+            <div className="modal-actions">
+              <button type="button" onClick={closeDeleteModal} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleDelete} className="btn btn-danger">
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 export default StakeholderApproval
-

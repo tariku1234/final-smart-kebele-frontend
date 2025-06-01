@@ -248,6 +248,16 @@ const AdminResponseForm = () => {
           <p>{complaint.description}</p>
         </div>
 
+        {complaint.additionalDetails && (
+          <div className="complaint-content">
+            <h3>Additional Details (Second Stage)</h3>
+            <p className="additional-details">{complaint.additionalDetails}</p>
+            <div className="second-stage-indicator">
+              <span className="stage-badge">Second Stage Submission</span>
+            </div>
+          </div>
+        )}
+
         {complaint.attachments && complaint.attachments.length > 0 && (
           <div className="complaint-attachments">
             <h3>Attachments</h3>
@@ -267,7 +277,7 @@ const AdminResponseForm = () => {
                         }}
                       />
                       <a
-                        href="1"
+                        href="#"
                         className="attachment-link"
                         onClick={(e) => {
                           e.preventDefault()

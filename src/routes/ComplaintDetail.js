@@ -603,6 +603,16 @@ const ComplaintDetail = () => {
           <p className="complaint-detail-description">{complaint.description}</p>
         </div>
 
+        {complaint.additionalDetails && (
+          <div className="complaint-detail-section">
+            <h2>Additional Details (Second Stage)</h2>
+            <p className="complaint-detail-description additional-details">{complaint.additionalDetails}</p>
+            <div className="second-stage-indicator">
+              <span className="stage-badge">Second Stage Submission</span>
+            </div>
+          </div>
+        )}
+
         {complaint.attachments && complaint.attachments.length > 0 && (
           <div className="complaint-detail-section">
             <h2>Attachments</h2>

@@ -95,7 +95,7 @@ const Home = () => {
         <div className="section-header">
           <h2 className="section-title">Office Availability</h2>
           <Link to="/offices" className="view-all-link">
-            View All
+          
           </Link>
         </div>
         {loading ? (

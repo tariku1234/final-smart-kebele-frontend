@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext } from "react"
+import { useContext, useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import "./Navbar.css"
@@ -8,6 +8,27 @@ import "./Navbar.css"
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext)
   const navigate = useNavigate()
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      const currentScrollY = window.scrollY
+
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        // Scrolling up or at the top
+        setIsVisible(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down and past 100px
+        setIsVisible(false)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener("scroll", controlNavbar)
+    return () => window.removeEventListener("scroll", controlNavbar)
+  }, [lastScrollY])
 
   const handleLogout = () => {
     logout()
@@ -15,7 +36,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isVisible ? "navbar-visible" : "navbar-hidden"}`}>
       <div className="container navbar-container">
         <Link to="/" className="navbar-logo">
           Smart-Kebele
@@ -114,7 +135,7 @@ const Navbar = () => {
                   </li>
                   <li className="navbar-item">
                     <Link to="/admin/reports" className="navbar-link">
-                     Performance
+                      Performance
                     </Link>
                   </li>
                 </>

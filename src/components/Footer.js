@@ -34,7 +34,7 @@ const Footer = () => {
         <div className="footer-section">
           <h3 className="footer-title">Contact</h3>
           <p>Email: info@smart-kebele.gov.et</p>
-          <p>Phone: +251 11 123 4567</p>
+          <p>Phone: +251 96 114 1361</p>
           <p>Address: Addis Ababa, Ethiopia</p>
         </div>
       </div>
@@ -45,7 +45,7 @@ const Footer = () => {
       </div>
     </footer>
   )
-}
+} 
 
 export default Footer
 

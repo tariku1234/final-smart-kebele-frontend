@@ -465,7 +465,7 @@ const CitizenComplaints = () => {
                       className="btn btn-resolve"
                       title="Accept the response and resolve the complaint"
                     >
-                      Resolve Complaint
+                      Complaint Resolved
                     </button>
                   )}
 
@@ -499,4 +499,3 @@ const CitizenComplaints = () => {
 }
 
 export default CitizenComplaints
-  

@@ -230,7 +230,7 @@ const OfficeAvailability = () => {
       {user && user.role === USER_ROLES.WEREDA_ANTI_CORRUPTION && (
         <div className="admin-actions">
           <button className="add-office-btn" onClick={() => (window.location.href = "/admin/offices")}>
-            Manage Office Availability
+           
           </button>
         </div>
       )}

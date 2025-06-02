@@ -81,6 +81,7 @@ const BlogCard = ({ post }) => {
       news: "News",
       guide: "Guide",
       success_story: "Success Story",
+      alert_news: "🚨 Alert News",
       other: "Other",
     }
     return categories[category] || "Other"

@@ -94,6 +94,7 @@ const BlogList = () => {
             <option value="news">News</option>
             <option value="guide">Guides</option>
             <option value="success_story">Success Stories</option>
+            <option value="alert_news">🚨 Alert News</option>
             <option value="other">Other</option>
           </select>
         </div>

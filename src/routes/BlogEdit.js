@@ -24,6 +24,7 @@ const BlogEdit = () => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [alertNotification, setAlertNotification] = useState(null)
 
   // Redirect if not logged in or not Kentiba Biro
   useEffect(() => {
@@ -108,6 +109,7 @@ const BlogEdit = () => {
 
     setSubmitting(true)
     setError(null)
+    setAlertNotification(null)
 
     try {
       const token = localStorage.getItem("token")
@@ -135,7 +137,16 @@ const BlogEdit = () => {
       const data = await response.json()
 
       if (response.ok) {
-        navigate(`/blog/${id}`)
+        // Show alert notification message if it's alert news
+        if (data.alertNotification) {
+          setAlertNotification(data.alertNotification)
+          // Redirect after showing the message
+          setTimeout(() => {
+            navigate(`/blog/${id}`)
+          }, 3000)
+        } else {
+          navigate(`/blog/${id}`)
+        }
       } else {
         setError(data.message || "Failed to update blog post")
       }
@@ -160,6 +171,14 @@ const BlogEdit = () => {
       <h2 className="blog-form-title">Edit Blog Post</h2>
 
       {error && <div className="alert alert-danger">{error}</div>}
+
+      {alertNotification && (
+        <div className="alert alert-success">
+          <strong>🚨 Alert News Updated!</strong>
+          <br />
+          {alertNotification}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="blog-form">
         <div className="form-group">
@@ -194,8 +213,15 @@ const BlogEdit = () => {
             <option value="news">News</option>
             <option value="guide">Guide</option>
             <option value="success_story">Success Story</option>
+            <option value="alert_news">🚨 Alert News</option>
             <option value="other">Other</option>
           </select>
+          {formData.category === "alert_news" && (
+            <div className="alert-news-notice">
+              <strong>⚠️ Alert News Notice:</strong> This post will be sent as an urgent notification to all citizens via
+              email when published.
+            </div>
+          )}
         </div>
 
         <div className="form-group">
@@ -265,6 +291,9 @@ const BlogEdit = () => {
           />
           <label htmlFor="isPublished" className="form-checkbox-label">
             Published
+            {formData.category === "alert_news" && (
+              <span className="alert-publish-note"> (Will send email alerts to all citizens)</span>
+            )}
           </label>
         </div>
 

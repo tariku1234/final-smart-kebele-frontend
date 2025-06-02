@@ -21,6 +21,7 @@ const BlogCreate = () => {
   const [imagePreview, setImagePreview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [alertNotification, setAlertNotification] = useState(null)
 
   // Redirect if not logged in or not Kentiba Biro
   useEffect(() => {
@@ -67,6 +68,7 @@ const BlogCreate = () => {
 
     setLoading(true)
     setError(null)
+    setAlertNotification(null)
 
     try {
       const token = localStorage.getItem("token")
@@ -83,6 +85,12 @@ const BlogCreate = () => {
         formDataObj.append("featuredImage", featuredImage)
       }
 
+      console.log("Submitting blog post:", {
+        title: formData.title,
+        category: formData.category,
+        hasImage: !!featuredImage,
+      })
+
       const response = await fetch(`${API_URL}/api/blog`, {
         method: "POST",
         headers: {
@@ -94,8 +102,23 @@ const BlogCreate = () => {
       const data = await response.json()
 
       if (response.ok) {
-        navigate(`/blog/${data.blogPost._id}`)
+        console.log("Blog post created successfully:", data)
+
+        // Show alert notification message if it's alert news
+        if (data.alertNotification) {
+          setAlertNotification(data.alertNotification)
+        }
+
+        // Redirect to the blog list after a short delay if alert notification
+        if (data.alertNotification) {
+          setTimeout(() => {
+            navigate("/blog")
+          }, 3000)
+        } else {
+          navigate("/blog")
+        }
       } else {
+        console.error("Failed to create blog post:", data)
         setError(data.message || "Failed to create blog post")
       }
     } catch (err) {
@@ -115,6 +138,14 @@ const BlogCreate = () => {
       <h2 className="blog-form-title">Create New Blog Post</h2>
 
       {error && <div className="alert alert-danger">{error}</div>}
+
+      {alertNotification && (
+        <div className="alert alert-success">
+          <strong>🚨 Alert News Created!</strong>
+          <br />
+          {alertNotification}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="blog-form">
         <div className="form-group">
@@ -149,8 +180,15 @@ const BlogCreate = () => {
             <option value="news">News</option>
             <option value="guide">Guide</option>
             <option value="success_story">Success Story</option>
+            <option value="alert_news">🚨 Alert News</option>
             <option value="other">Other</option>
           </select>
+          {formData.category === "alert_news" && (
+            <div className="alert-news-notice">
+              <strong>⚠️ Alert News Notice:</strong> This post will be sent as an urgent notification to all citizens via
+              email when published.
+            </div>
+          )}
         </div>
 
         <div className="form-group">
@@ -214,6 +252,9 @@ const BlogCreate = () => {
           />
           <label htmlFor="isPublished" className="form-checkbox-label">
             Publish immediately
+            {formData.category === "alert_news" && (
+              <span className="alert-publish-note"> (Will send email alerts to all citizens)</span>
+            )}
           </label>
         </div>
 

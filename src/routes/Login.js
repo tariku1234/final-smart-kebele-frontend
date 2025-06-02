@@ -94,18 +94,7 @@ const Login = () => {
               Register as Citizen
             </Link>
           </p>
-          <p>
-            Register as a stakeholder office?{" "}
-            <Link to="/stakeholder-register" className="form-link">
-              Stakeholder Registration
-            </Link>
-          </p>
-          <p>
-            Register as an administrator?{" "}
-            <Link to="/admin-register" className="form-link">
-              Administrator Registration
-            </Link>
-          </p>
+       
           <p>
             <Link to="/forgot-password" className="form-link">
               Forgot Password?

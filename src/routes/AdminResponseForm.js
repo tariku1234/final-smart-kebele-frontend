@@ -137,7 +137,6 @@ const AdminResponseForm = () => {
         throw new Error(`Server responded with status: ${apiResponse.status}`)
       }
 
-      const data = await apiResponse.json()
 
       setSuccess(true)
 
@@ -276,16 +275,13 @@ const AdminResponseForm = () => {
                           e.target.alt = "Image failed to load"
                         }}
                       />
-                      <a
-                        href="#"
+                      <button
+                        type="button"
                         className="attachment-link"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          openImageModal(getAttachmentUrl(attachment))
-                        }}
+                        onClick={() => openImageModal(getAttachmentUrl(attachment))}
                       >
                         View Full Size
-                      </a>
+                      </button>
                     </div>
                   ) : (
                     <a

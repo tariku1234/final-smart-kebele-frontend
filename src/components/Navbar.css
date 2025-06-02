@@ -27,15 +27,22 @@
 }
 
 .navbar-logo {
-  color: #359bfa; /* Bright blue color for logo */
-  font-size: 24px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .navbar-logo:hover {
-  color: #2ecc71; /* Green hover for logo */
+  transform: scale(1.05);
+}
+
+.navbar-logo-image {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  transition: all 0.3s ease;
 }
 
 .navbar-menu {
@@ -51,7 +58,7 @@
 }
 
 .navbar-link {
-  color: #ecf0f1;
+  color: #ffffff; /* Light gray instead of white */
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -126,8 +133,9 @@ body {
     margin: 5px 10px;
   }
 
-  .navbar-logo {
-    font-size: 20px;
+  .navbar-logo-image {
+    height: 35px;
+    max-width: 180px;
   }
 
   body {
@@ -149,6 +157,11 @@ body {
   .navbar-link {
     display: block;
     padding: 10px;
+  }
+
+  .navbar-logo-image {
+    height: 30px;
+    max-width: 160px;
   }
 
   body {

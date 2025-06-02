@@ -39,7 +39,7 @@ const Navbar = () => {
     <nav className={`navbar ${isVisible ? "navbar-visible" : "navbar-hidden"}`}>
       <div className="container navbar-container">
         <Link to="/" className="navbar-logo">
-          Smart-Kebele
+        <img src="/images/smart-kebele-logo.png" alt="Smart Kebele" className="navbar-logo-image" />
         </Link>
         <ul className="navbar-menu">
           <li className="navbar-item">

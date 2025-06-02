@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import { API_URL } from "../config"
@@ -26,23 +26,7 @@ const BlogEdit = () => {
   const [error, setError] = useState(null)
   const [alertNotification, setAlertNotification] = useState(null)
 
-  // Redirect if not logged in or not Kentiba Biro
-  useEffect(() => {
-    if (!user) {
-      navigate("/login")
-      return
-    }
-
-    if (user.role !== "kentiba_biro") {
-      navigate("/blog")
-      return
-    }
-
-    // Fetch blog post data
-    fetchPost()
-  }, [user, navigate, id])
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const token = localStorage.getItem("token")
       const response = await fetch(`${API_URL}/api/blog/${id}`, {
@@ -75,7 +59,23 @@ const BlogEdit = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
+
+  // Redirect if not logged in or not Kentiba Biro
+  useEffect(() => {
+    if (!user) {
+      navigate("/login")
+      return
+    }
+
+    if (user.role !== "kentiba_biro") {
+      navigate("/blog")
+      return
+    }
+
+    // Fetch blog post data
+    fetchPost()
+  }, [user, navigate, fetchPost])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target

@@ -109,22 +109,34 @@ const ComplaintDetail = () => {
     }
   }
 
-  // Helper function to get the correct image URL
+  // Helper function to get the correct attachment URL - now handles Base64 and file paths
   const getAttachmentUrl = (attachment) => {
     if (!attachment) return null
+
+    // If it's a Base64 data URL, return it directly
+    if (attachment.startsWith("data:")) {
+      return attachment
+    }
 
     // If it's already a full URL, return it
     if (attachment.startsWith("http")) {
       return attachment
     }
 
-    // Otherwise, construct the URL
+    // Otherwise, construct the URL (for backward compatibility with old file paths)
     return `${API_URL}/${attachment}`
   }
 
-  // Helper function to determine if an attachment is an image
+  // Helper function to determine if an attachment is an image - now handles Base64
   const isImageAttachment = (attachment) => {
     if (!attachment) return false
+
+    // Check if it's a Base64 image data URL
+    if (attachment.startsWith("data:image/")) {
+      return true
+    }
+
+    // Check file extension for backward compatibility
     const lowerCaseAttachment = attachment.toLowerCase()
     return (
       lowerCaseAttachment.endsWith(".jpg") ||

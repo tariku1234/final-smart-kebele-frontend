@@ -79,9 +79,14 @@ const BlogDetail = () => {
     return categories[category] || "Other"
   }
 
-  // Function to get the full image URL
+  // Function to get the full image URL - now handles Base64 and file paths
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "/placeholder.svg"
+
+    // If it's a Base64 data URL, return it directly
+    if (imagePath.startsWith("data:")) {
+      return imagePath
+    }
 
     // If the path already starts with http or https, it's an absolute URL
     if (imagePath.startsWith("http")) {
@@ -97,9 +102,16 @@ const BlogDetail = () => {
     return `${API_URL}/uploads/${imagePath}`
   }
 
-  // Determine if the featured media is a video
+  // Determine if the featured media is a video - now handles Base64
   const isVideo = (path) => {
     if (!path) return false
+
+    // Check if it's a Base64 video data URL
+    if (path.startsWith("data:video/")) {
+      return true
+    }
+
+    // Check file extension for backward compatibility
     const videoExtensions = [".mp4", ".webm", ".ogg"]
     return videoExtensions.some((ext) => path.toLowerCase().endsWith(ext))
   }

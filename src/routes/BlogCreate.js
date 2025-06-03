@@ -49,7 +49,7 @@ const BlogCreate = () => {
     if (file) {
       setFeaturedImage(file)
 
-      // Create preview URL
+      // Create preview URL - this will be converted to Base64 on the server
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result)
@@ -218,6 +218,9 @@ const BlogCreate = () => {
             className="form-input"
             accept="image/jpeg,image/png,image/gif"
           />
+          <small className="form-text text-muted">
+            Images are stored securely and will be optimized for web delivery.
+          </small>
           {imagePreview && (
             <div className="image-preview-container">
               <img src={imagePreview || "/placeholder.svg"} alt="Preview" className="image-preview" />

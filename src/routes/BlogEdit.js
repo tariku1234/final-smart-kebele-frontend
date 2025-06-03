@@ -26,6 +26,26 @@ const BlogEdit = () => {
   const [error, setError] = useState(null)
   const [alertNotification, setAlertNotification] = useState(null)
 
+  // Add this helper function at the top of the component
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "/placeholder.svg"
+
+    // If it's a Base64 data URL, return it directly
+    if (imagePath.startsWith("data:")) {
+      return imagePath
+    }
+
+    if (imagePath.startsWith("http")) {
+      return imagePath
+    }
+
+    if (imagePath.startsWith("/")) {
+      return `${API_URL}${imagePath}`
+    }
+
+    return `${API_URL}/uploads/${imagePath}`
+  }
+
   const fetchPost = useCallback(async () => {
     try {
       const token = localStorage.getItem("token")
@@ -48,7 +68,7 @@ const BlogEdit = () => {
         })
 
         if (blogPost.featuredImage) {
-          setCurrentImage(blogPost.featuredImage)
+          setCurrentImage(blogPost.featuredImage) // This now handles both Base64 and file paths
         }
       } else {
         setError(data.message || "Failed to fetch blog post")
@@ -258,7 +278,7 @@ const BlogEdit = () => {
             </div>
           ) : currentImage ? (
             <div className="image-preview-container">
-              <img src={currentImage || "/placeholder.svg"} alt="Current" className="image-preview" />
+              <img src={getImageUrl(currentImage) || "/placeholder.svg"} alt="Current" className="image-preview" />
               <p className="image-preview-note">Current image</p>
             </div>
           ) : null}

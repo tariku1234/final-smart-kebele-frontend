@@ -95,6 +95,11 @@ const BlogCard = ({ post }) => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "/placeholder.svg"
 
+    // If it's a Base64 data URL, return it directly
+    if (imagePath.startsWith("data:")) {
+      return imagePath
+    }
+
     if (imagePath.startsWith("http")) {
       return imagePath
     }
@@ -108,6 +113,12 @@ const BlogCard = ({ post }) => {
 
   const isVideo = (path) => {
     if (!path) return false
+
+    // Check if it's a Base64 video data URL
+    if (path.startsWith("data:video/")) {
+      return true
+    }
+
     const videoExtensions = [".mp4", ".webm", ".ogg"]
     return videoExtensions.some((ext) => path.toLowerCase().endsWith(ext))
   }

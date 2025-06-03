@@ -116,7 +116,64 @@
   font-weight: 600;
   margin-left: 6px;
 }
-
+.file-icon {
+  font-size: 24px;
+  margin-right: 12px;
+  color: #666;
+}
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+.file-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.file-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+}
+.file-size {
+  font-weight: 500;
+}
+.file-type {
+  font-style: italic;
+}
+.file-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 12px;
+}
+.btn-view,
+.btn-download {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-view {
+  background-color: #007bff;
+  color: white;
+}
+.btn-view:hover {
+  background-color: #0056b3;
+}
+.btn-download {
+  background-color: #28a745;
+  color: white;
+}
+.btn-download:hover {
+  background-color: #1e7e34;
+}
+.btn-view:disabled,
+.btn-download:disabled {
+  opacity: 0.6;}
 /* Description */
 .complaint-detail-description {
   line-height: 1.6;
@@ -142,7 +199,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
+.attachment-file-container {
+  display: flex;
+  align-items: center;
+}
 .attachment-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

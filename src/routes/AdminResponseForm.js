@@ -5,6 +5,15 @@ import { useParams, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import { API_URL, USER_ROLES } from "../config"
 import "./AdminResponseForm.css"
+import {
+  isBase64DataUrl,
+  extractFileInfoFromBase64,
+  downloadBase64File,
+  openBase64FileInNewTab,
+  canViewInBrowser,
+  getFileNameFromAttachment,
+  formatFileSize,
+} from "../utils/fileDownloadHelper"
 
 const AdminResponseForm = () => {
   const { id } = useParams()
@@ -37,9 +46,17 @@ const AdminResponseForm = () => {
     return `${API_URL}/${attachment}`
   }
 
-  // Helper function to determine if an attachment is an image
+  // Helper function to determine if an attachment is an image - now handles Base64
   const isImageAttachment = (attachment) => {
     if (!attachment) return false
+
+    // Check if it's a Base64 image data URL
+    if (isBase64DataUrl(attachment)) {
+      const fileInfo = extractFileInfoFromBase64(attachment)
+      return fileInfo && fileInfo.mimeType.startsWith("image/")
+    }
+
+    // Check file extension for backward compatibility
     const lowerCaseAttachment = attachment.toLowerCase()
     return (
       lowerCaseAttachment.endsWith(".jpg") ||
@@ -137,7 +154,7 @@ const AdminResponseForm = () => {
         throw new Error(`Server responded with status: ${apiResponse.status}`)
       }
 
-
+      // Successfully submitted response
       setSuccess(true)
 
       // Redirect after 3 seconds
@@ -160,6 +177,64 @@ const AdminResponseForm = () => {
   // Function to close the image modal
   const closeImageModal = () => {
     setFullSizeImage(null)
+  }
+
+  // Handle file download for Base64 attachments
+  const handleFileDownload = (attachment, index) => {
+    if (isBase64DataUrl(attachment)) {
+      const fileName = getFileNameFromAttachment(attachment, index)
+      const success = downloadBase64File(attachment, fileName)
+      if (!success) {
+        alert("Failed to download file. Please try again.")
+      }
+    } else {
+      // For regular file paths, open in new tab
+      window.open(getAttachmentUrl(attachment), "_blank")
+    }
+  }
+
+  // Handle file viewing for Base64 attachments
+  const handleFileView = (attachment, index) => {
+    if (isBase64DataUrl(attachment)) {
+      const fileInfo = extractFileInfoFromBase64(attachment)
+      if (fileInfo && canViewInBrowser(fileInfo.mimeType)) {
+        const success = openBase64FileInNewTab(attachment)
+        if (!success) {
+          // Fallback to download if viewing fails
+          handleFileDownload(attachment, index)
+        }
+      } else {
+        // If can't view, download instead
+        handleFileDownload(attachment, index)
+      }
+    } else {
+      // For regular file paths, open in new tab
+      window.open(getAttachmentUrl(attachment), "_blank")
+    }
+  }
+
+  // Get file info for display
+  const getFileDisplayInfo = (attachment, index) => {
+    if (isBase64DataUrl(attachment)) {
+      const fileInfo = extractFileInfoFromBase64(attachment)
+      if (fileInfo) {
+        return {
+          name: getFileNameFromAttachment(attachment, index),
+          size: formatFileSize(fileInfo.size),
+          type: fileInfo.mimeType,
+          canView: canViewInBrowser(fileInfo.mimeType),
+        }
+      }
+    }
+
+    // For file paths, extract basic info
+    const fileName = getFileNameFromAttachment(attachment, index)
+    return {
+      name: fileName,
+      size: "Unknown size",
+      type: "Unknown type",
+      canView: true, // Assume file paths can be viewed
+    }
   }
 
   if (!user || user.role === USER_ROLES.CITIZEN) {
@@ -261,40 +336,66 @@ const AdminResponseForm = () => {
           <div className="complaint-attachments">
             <h3>Attachments</h3>
             <div className="attachments-container">
-              {complaint.attachments.map((attachment, index) => (
-                <div key={index} className="attachment-item">
-                  {isImageAttachment(attachment) ? (
-                    <div className="attachment-image-container">
-                      <img
-                        src={getAttachmentUrl(attachment) || "/placeholder.svg"}
-                        alt={`Attachment ${index + 1}`}
-                        className="attachment-image"
-                        onError={(e) => {
-                          e.target.onerror = null
-                          e.target.src = "/placeholder.svg?height=200&width=300"
-                          e.target.alt = "Image failed to load"
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="attachment-link"
-                        onClick={() => openImageModal(getAttachmentUrl(attachment))}
-                      >
-                        View Full Size
-                      </button>
-                    </div>
-                  ) : (
-                    <a
-                      href={`${API_URL}/${attachment}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="attachment-link"
-                    >
-                      Attachment {index + 1}
-                    </a>
-                  )}
-                </div>
-              ))}
+              {complaint.attachments.map((attachment, index) => {
+                const fileInfo = getFileDisplayInfo(attachment, index)
+
+                return (
+                  <div key={index} className="attachment-item">
+                    {isImageAttachment(attachment) ? (
+                      <div className="attachment-image-container">
+                        <img
+                          src={getAttachmentUrl(attachment) || "/placeholder.svg"}
+                          alt={`Attachment ${index + 1}`}
+                          className="attachment-image"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = "/placeholder.svg?height=200&width=300"
+                            e.target.alt = "Image failed to load"
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="attachment-link"
+                          onClick={() => openImageModal(getAttachmentUrl(attachment))}
+                        >
+                          View Full Size
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="attachment-file-container">
+                        <div className="file-icon">📄</div>
+                        <div className="file-details">
+                          <div className="file-name">{fileInfo.name}</div>
+                          <div className="file-meta">
+                            <span className="file-size">{fileInfo.size}</span>
+                            {fileInfo.type !== "Unknown type" && <span className="file-type">{fileInfo.type}</span>}
+                          </div>
+                        </div>
+                        <div className="file-actions">
+                          {fileInfo.canView && (
+                            <button
+                              type="button"
+                              className="btn btn-view"
+                              onClick={() => handleFileView(attachment, index)}
+                              title="View file"
+                            >
+                              View
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn btn-download"
+                            onClick={() => handleFileDownload(attachment, index)}
+                            title="Download file"
+                          >
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

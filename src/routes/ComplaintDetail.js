@@ -6,6 +6,15 @@ import axios from "axios"
 import { AuthContext } from "../context/AuthContext"
 import "./ComplaintDetail.css"
 import { API_URL } from "../config"
+import {
+  isBase64DataUrl,
+  extractFileInfoFromBase64,
+  downloadBase64File,
+  openBase64FileInNewTab,
+  canViewInBrowser,
+  getFileNameFromAttachment,
+  formatFileSize,
+} from "../utils/fileDownloadHelper"
 
 const ComplaintDetail = () => {
   const { id } = useParams()
@@ -113,9 +122,9 @@ const ComplaintDetail = () => {
   const getAttachmentUrl = (attachment) => {
     if (!attachment) return null
 
-    // If it's a Base64 data URL, return it directly
-    if (attachment.startsWith("data:")) {
-      return attachment
+    // If it's a Base64 data URL, we'll handle it differently in the UI
+    if (isBase64DataUrl(attachment)) {
+      return attachment // Return as-is, but we'll handle it specially in the UI
     }
 
     // If it's already a full URL, return it
@@ -132,8 +141,9 @@ const ComplaintDetail = () => {
     if (!attachment) return false
 
     // Check if it's a Base64 image data URL
-    if (attachment.startsWith("data:image/")) {
-      return true
+    if (isBase64DataUrl(attachment)) {
+      const fileInfo = extractFileInfoFromBase64(attachment)
+      return fileInfo && fileInfo.mimeType.startsWith("image/")
     }
 
     // Check file extension for backward compatibility
@@ -456,6 +466,64 @@ const ComplaintDetail = () => {
   // Add this near the top of the component
   const now = new Date()
 
+  // Handle file download for Base64 attachments
+  const handleFileDownload = (attachment, index) => {
+    if (isBase64DataUrl(attachment)) {
+      const fileName = getFileNameFromAttachment(attachment, index)
+      const success = downloadBase64File(attachment, fileName)
+      if (!success) {
+        alert("Failed to download file. Please try again.")
+      }
+    } else {
+      // For regular file paths, open in new tab
+      window.open(getAttachmentUrl(attachment), "_blank")
+    }
+  }
+
+  // Handle file viewing for Base64 attachments
+  const handleFileView = (attachment, index) => {
+    if (isBase64DataUrl(attachment)) {
+      const fileInfo = extractFileInfoFromBase64(attachment)
+      if (fileInfo && canViewInBrowser(fileInfo.mimeType)) {
+        const success = openBase64FileInNewTab(attachment)
+        if (!success) {
+          // Fallback to download if viewing fails
+          handleFileDownload(attachment, index)
+        }
+      } else {
+        // If can't view, download instead
+        handleFileDownload(attachment, index)
+      }
+    } else {
+      // For regular file paths, open in new tab
+      window.open(getAttachmentUrl(attachment), "_blank")
+    }
+  }
+
+  // Get file info for display
+  const getFileDisplayInfo = (attachment, index) => {
+    if (isBase64DataUrl(attachment)) {
+      const fileInfo = extractFileInfoFromBase64(attachment)
+      if (fileInfo) {
+        return {
+          name: getFileNameFromAttachment(attachment, index),
+          size: formatFileSize(fileInfo.size),
+          type: fileInfo.mimeType,
+          canView: canViewInBrowser(fileInfo.mimeType),
+        }
+      }
+    }
+
+    // For file paths, extract basic info
+    const fileName = getFileNameFromAttachment(attachment, index)
+    return {
+      name: fileName,
+      size: "Unknown size",
+      type: "Unknown type",
+      canView: true, // Assume file paths can be viewed
+    }
+  }
+
   if (loading) {
     return <div className="loading">Loading complaint details...</div>
   }
@@ -629,40 +697,66 @@ const ComplaintDetail = () => {
           <div className="complaint-detail-section">
             <h2>Attachments</h2>
             <div className="attachments-container">
-              {complaint.attachments.map((attachment, index) => (
-                <div key={index} className="attachment-item">
-                  {isImageAttachment(attachment) ? (
-                    <div className="attachment-image-container">
-                      <img
-                        src={getAttachmentUrl(attachment) || "/placeholder.svg"}
-                        alt={`Attachment ${index + 1}`}
-                        className="attachment-image"
-                        onError={(e) => {
-                          e.target.onerror = null
-                          e.target.src = "/placeholder.svg?height=200&width=300"
-                          e.target.alt = "Image failed to load"
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="view-full-size-btn"
-                        onClick={() => openImageModal(getAttachmentUrl(attachment))}
-                      >
-                        View Full Size
-                      </button>
-                    </div>
-                  ) : (
-                    <a
-                      href={getAttachmentUrl(attachment)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="attachment-link"
-                    >
-                      Attachment {index + 1}
-                    </a>
-                  )}
-                </div>
-              ))}
+              {complaint.attachments.map((attachment, index) => {
+                const fileInfo = getFileDisplayInfo(attachment, index)
+
+                return (
+                  <div key={index} className="attachment-item">
+                    {isImageAttachment(attachment) ? (
+                      <div className="attachment-image-container">
+                        <img
+                          src={getAttachmentUrl(attachment) || "/placeholder.svg"}
+                          alt={`Attachment ${index + 1}`}
+                          className="attachment-image"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = "/placeholder.svg?height=200&width=300"
+                            e.target.alt = "Image failed to load"
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="view-full-size-btn"
+                          onClick={() => openImageModal(getAttachmentUrl(attachment))}
+                        >
+                          View Full Size
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="attachment-file-container">
+                        <div className="file-icon">📄</div>
+                        <div className="file-details">
+                          <div className="file-name">{fileInfo.name}</div>
+                          <div className="file-meta">
+                            <span className="file-size">{fileInfo.size}</span>
+                            {fileInfo.type !== "Unknown type" && <span className="file-type">{fileInfo.type}</span>}
+                          </div>
+                        </div>
+                        <div className="file-actions">
+                          {fileInfo.canView && (
+                            <button
+                              type="button"
+                              className="btn btn-view"
+                              onClick={() => handleFileView(attachment, index)}
+                              title="View file"
+                            >
+                              View
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn btn-download"
+                            onClick={() => handleFileDownload(attachment, index)}
+                            title="Download file"
+                          >
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -802,13 +896,6 @@ const ComplaintDetail = () => {
                       <button onClick={handleAcceptResponse} className="btn btn-resolve">
                         Resolve Complaint
                       </button>
-                      <Link
-                        to={`/complaint?stage=second&complaintId=${complaint._id}`}
-                        className="btn btn-primary"
-                        title="Submit a second stage complaint"
-                      >
-                        Submit Second Stage
-                      </Link>
                       {/* Only show escalate button if due date has passed and no response */}
                       {now > new Date(complaint.weredaFirstResponseDue) && complaint.status !== "in_progress" && (
                         <button onClick={handleEscalate} className="btn btn-escalate">
